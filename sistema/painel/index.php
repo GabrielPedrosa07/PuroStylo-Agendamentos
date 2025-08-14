@@ -11,6 +11,13 @@ $query = $pdo->query("SELECT * from usuarios where id = '$id_usuario'");
 $res = $query->fetchAll(PDO::FETCH_ASSOC);
 $total_reg = @count($res);
 if($total_reg > 0){
+	$menu_pessoas = ''; 	
+	$menu_cadastros = ''; 	
+	$menu_agendamentos = ''; 
+	$menu_site = ''; 
+	$menu_relatorio = ''; 
+	$menu_financeiro = '';
+	$menu_produtos = '';
 	$nome_usuario = $res[0]['nome'];
 	$email_usuario = $res[0]['email'];
 	$cpf_usuario = $res[0]['cpf'];
