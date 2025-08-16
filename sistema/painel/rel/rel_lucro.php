@@ -1,384 +1,169 @@
-<?php 
-include('../../conexao.php');
+<?php
+// Inclui a conexão (garanta que em 'conexao.php' a conexão PDO está com 'charset=utf8mb4')
+include_once '../../conexao.php';
 
-setlocale(LC_TIME, 'pt_BR', 'pt_BR.utf-8', 'pt_BR.utf-8', 'portuguese');
-date_default_timezone_set('America/Sao_Paulo');
-$data_hoje = utf8_encode(strftime('%A, %d de %B de %Y', strtotime('today')));
+// --- TRATAMENTO DAS VARIÁVEIS DE ENTRADA ---
+// No novo fluxo, estas variáveis vêm diretamente do script "orquestrador", não do $_GET.
 
-$dataInicial = $_GET['dataInicial'];
-$dataFinal = $_GET['dataFinal'];
+// Formata as datas para exibição no relatório
+$dataInicialF = (new DateTime($dataInicial))->format('d/m/Y');
+$dataFinalF = (new DateTime($dataFinal))->format('d/m/Y');
 
-$dataInicialF = implode('/', array_reverse(explode('-', $dataInicial)));
-$dataFinalF = implode('/', array_reverse(explode('-', $dataFinal)));
-
-if($dataInicial == $dataFinal){
-	$texto_apuracao = 'APURADO EM '.$dataInicialF;
-}else if($dataInicial == '1980-01-01'){
-	$texto_apuracao = 'APURADO EM TODO O PERÍODO';
-}else{
-	$texto_apuracao = 'APURAÇÃO DE '.$dataInicialF. ' ATÉ '.$dataFinalF;
+// Lógica para o texto de apuração do período
+if ($dataInicial == $dataFinal) {
+    $texto_apuracao = 'APURADO EM ' . $dataInicialF;
+} elseif ($dataInicial == '1980-01-01') {
+    $texto_apuracao = 'APURADO EM TODO O PERÍODO';
+} else {
+    $texto_apuracao = 'APURAÇÃO DE ' . $dataInicialF . ' ATÉ ' . $dataFinalF;
 }
 
+// --- GERAÇÃO DA DATA ATUAL (Método Moderno) ---
+try {
+    $fmt = new IntlDateFormatter('pt_BR', IntlDateFormatter::FULL, IntlDateFormatter::NONE, 'America/Sao_Paulo');
+    $data_hoje = $fmt->format(new DateTime());
+} catch (Exception $e) {
+    date_default_timezone_set('America/Sao_Paulo');
+    $data_hoje = date('d/m/Y');
+}
 
+// --- CONSULTA ÚNICA E AGREGADA PARA TODOS OS TOTAIS ---
+// Esta consulta é o coração da otimização.
+// 1. Usa SUM() e GROUP BY para que o próprio banco de dados calcule os totais.
+// 2. Usa UNION ALL para combinar os resultados das tabelas 'receber' e 'pagar' em uma única chamada.
+// 3. É 100% segura, usando Prepared Statements.
+$query_sql = "
+    (SELECT 'receber' as origem, tipo, SUM(valor) as total 
+     FROM receber 
+     WHERE data_pgto >= :dataInicial1 AND data_pgto <= :dataFinal1 AND pago = 'Sim' AND tipo IN ('Serviço', 'Venda', 'Conta')
+     GROUP BY tipo)
+    UNION ALL
+    (SELECT 'pagar' as origem, tipo, SUM(valor) as total 
+     FROM pagar 
+     WHERE data_pgto >= :dataInicial2 AND data_pgto <= :dataFinal2 AND pago = 'Sim' AND tipo IN ('Conta', 'Compra', 'Comissão')
+     GROUP BY tipo)
+";
+
+$query = $pdo->prepare($query_sql);
+// Bind dos parâmetros para a primeira parte da união
+$query->bindValue(':dataInicial1', $dataInicial);
+$query->bindValue(':dataFinal1', $dataFinal);
+// Bind dos parâmetros para a segunda parte da união
+$query->bindValue(':dataInicial2', $dataInicial);
+$query->bindValue(':dataFinal2', $dataFinal);
+$query->execute();
+$resultados = $query->fetchAll(PDO::FETCH_ASSOC);
+
+// --- PROCESSAMENTO DOS RESULTADOS AGREGADOS ---
+// Inicializa todas as variáveis de total
+$totais = [
+    'servicos' => 0,
+    'vendas' => 0,
+    'receber' => 0,
+    'pagar' => 0,
+    'compras' => 0,
+    'comissoes' => 0
+];
+
+// Loop através dos resultados (que serão no máximo 6 linhas) e atribui os totais
+foreach ($resultados as $resultado) {
+    if ($resultado['origem'] == 'receber') {
+        if ($resultado['tipo'] == 'Serviço') $totais['servicos'] = $resultado['total'];
+        if ($resultado['tipo'] == 'Venda') $totais['vendas'] = $resultado['total'];
+        if ($resultado['tipo'] == 'Conta') $totais['receber'] = $resultado['total'];
+    } elseif ($resultado['origem'] == 'pagar') {
+        if ($resultado['tipo'] == 'Conta') $totais['pagar'] = $resultado['total'];
+        if ($resultado['tipo'] == 'Compra') $totais['compras'] = $resultado['total'];
+        if ($resultado['tipo'] == 'Comissão') $totais['comissoes'] = $resultado['total'];
+    }
+}
+
+// Cálculos finais
+$total_entradas = $totais['servicos'] + $totais['vendas'] + $totais['receber'];
+$total_saidas = $totais['pagar'] + $totais['compras'] + $totais['comissoes'];
+$saldo_total = $total_entradas - $total_saidas;
+
+// Formatação para exibição
+$saldo_totalF = number_format($saldo_total, 2, ',', '.');
+$classe_saldo = ($saldo_total < 0) ? 'text-danger' : 'text-success';
+$classe_img = ($saldo_total < 0) ? 'negativo.jpg' : 'positivo.jpg';
 ?>
-
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
-	<title>Demonstrativo de Lucro</title>
-	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-wEmeIV1mKuiNpC+IOBjI7aAzPcEZeedi5yW5f2yOq55WWLwNGmvvx4Um1vskeMj0" crossorigin="anonymous">
-
-
-<style>
-
-		@page {
-			margin: 0px;
-
-		}
-
-		body{
-			margin-top:5px;
-			font-family: TimesNewRoman, Geneva, sans-serif; 
-		}		
-
-			.footer {
-				margin-top:20px;
-				width:100%;
-				background-color: #ebebeb;
-				padding:5px;
-				position:absolute;
-				bottom:0;
-			}
-
-		
-
-		.cabecalho {    
-			padding:10px;
-			margin-bottom:30px;
-			width:100%;
-			font-family: TimesNewRoman, Geneva, sans-serif; 
-		}
-
-		.titulo_cab{
-			color:#0340a3;
-			font-size:20px;
-		}
-
-		
-		
-		.titulo{
-			margin:0;
-			font-size:28px;
-			font-family: TimesNewRoman, Geneva, sans-serif; 
-			color:#6e6d6d;
-
-		}
-
-		.subtitulo{
-			margin:0;
-			font-size:12px;
-			font-family: TimesNewRoman, Geneva, sans-serif; 
-			color:#6e6d6d;
-		}
-
-
-
-		hr{
-			margin:8px;
-			padding:0px;
-		}
-
-
-		
-		.area-cab{
-			
-			display:block;
-			width:100%;
-			height:10px;
-
-		}
-
-		
-		.coluna{
-			margin: 0px;
-			float:left;
-			height:30px;
-		}
-
-		.area-tab{
-			
-			display:block;
-			width:100%;
-			height:30px;
-
-		}
-
-
-		.imagem {
-			width: 150px;
-			position:absolute;
-			right:20px;
-			top:10px;
-		}
-
-		.titulo_img {
-			position: absolute;
-			margin-top: 10px;
-			margin-left: 10px;
-
-		}
-
-		.data_img {
-			position: absolute;
-			margin-top: 40px;
-			margin-left: 10px;
-			border-bottom:1px solid #000;
-			font-size: 10px;
-		}
-
-		.endereco {
-			position: absolute;
-			margin-top: 50px;
-			margin-left: 10px;
-			border-bottom:1px solid #000;
-			font-size: 10px;
-		}
-
-		.verde{
-			color:green;
-		}
-
-
-
-		table.borda {
-    		border-collapse: collapse; /* CSS2 */
-    		background: #FFF;
-    		font-size:12px;
-    		vertical-align:middle;
-		}
- 
-		table.borda td {
-		    border: 1px solid #dbdbdb;
-		}
-		 
-		table.borda th {
-		    border: 1px solid #dbdbdb;
-		    background: #ededed;
-		    font-size:13px;
-		}
-				
-
-	</style>
-
-
+    <meta charset="UTF-8">
+    <title>Demonstrativo de Lucro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-wEmeIV1mKuiNpC+IOBjI7aAzPcEZeedi5yW5f2yOq55WWLwNGmvvx4Um1vskeMj0" crossorigin="anonymous">
+    <style>
+        @page { margin: 0; }
+        body { font-family: 'Times New Roman', Times, serif; margin: 5px 20px; }
+        .footer { width: 100%; background-color: #ebebeb; padding: 5px; position: absolute; bottom: 0; text-align: center; font-size: 10px; }
+        .cabecalho-principal { padding: 10px 0; margin-bottom: 20px; width: 100%; border-bottom: 1px solid #0340a3; }
+        .cabecalho-info { position: relative; height: 120px; }
+        .imagem-logo { width: 150px; position: absolute; right: 0; top: 10px; }
+        .titulo-relatorio, .data-relatorio { position: absolute; left: 0; }
+        .titulo-relatorio { top: 10px; font-size: 18px; font-weight: bold; text-decoration: underline; }
+        .data-relatorio { top: 40px; font-size: 12px; }
+        .texto-apuracao { font-size: 10px; text-decoration: underline; margin-bottom: 15px; }
+        table.relatorio-tabela { width: 100%; border-collapse: collapse; font-size: 12px; vertical-align: middle; }
+        table.relatorio-tabela th, table.relatorio-tabela td { border: 1px solid #dbdbdb; padding: 6px; text-align: center; }
+        table.relatorio-tabela th { background-color: #ededed; font-size: 13px; }
+        .resumo-final { text-align: center; margin-top: 30px; }
+        .resumo-final span { font-size: 20px; font-weight: bold; vertical-align: middle; }
+        .resumo-final img { width: 50px; vertical-align: middle; margin-right: 10px; }
+    </style>
 </head>
-<body>	
-
-	<div class="titulo_cab titulo_img"><u>Demonstrativo de Lucro </u></div>	
-	<div class="data_img"><?php echo mb_strtoupper($data_hoje) ?></div>
-
-	<img class="imagem" src="<?php echo $url_sistema ?>/sistema/img/logo_rel.jpg" width="150px">
-
-	
-	<br><br><br>
-	<div class="cabecalho" style="border-bottom: solid 1px #0340a3">
-	</div>
-
-	<div class="mx-2" >
-
-		<section class="area-cab">
-			
-			<div>
-				<small><small><small><u><?php echo $texto_apuracao ?></u></small></small></small>
-			</div>
-
-	
-			</section>
-
-			<br>
-
-		<?php 
-		$total_servicos = 0;
-		$total_vendas = 0;
-		$total_receber = 0;
-		$total_pagar = 0;
-		$total_compras = 0;
-		$total_comissoes = 0;
-
-		$total_entradas = 0;
-		$total_saidas = 0;
-
-		$saldo_total = 0;
-		
-		 ?>
-
-	<table class="table table-striped borda" cellpadding="6">
-  <thead>
-    <tr align="center">
-      <th scope="col">Serviços</th>
-      <th scope="col">Vendas</th>
-      <th scope="col">Recebimentos</th>
-      <th scope="col">Despesas</th>
-      <th scope="col">Compras</th>
-      <th scope="col">Comissões</th>
-    </tr>
-  </thead>
-  <tbody>
-
-  	<?php
-  	//totalizar os serviços 
-  	$query = $pdo->query("SELECT * FROM receber where data_pgto >= '$dataInicial' and data_pgto <= '$dataFinal' and tipo = 'Serviço' and pago = 'Sim' ORDER BY data_pgto asc");
-	$res = $query->fetchAll(PDO::FETCH_ASSOC);
-	$total_reg = @count($res);	
-  	for($i=0; $i < $total_reg; $i++){
-	foreach ($res[$i] as $key => $value){}
-
-		$total_servicos += $res[$i]['valor'];
-
-	}
-
-
-
-	//totalizar os vendas 
-  	$query = $pdo->query("SELECT * FROM receber where data_pgto >= '$dataInicial' and data_pgto <= '$dataFinal' and tipo = 'Venda' and pago = 'Sim' ORDER BY data_pgto asc");
-	$res = $query->fetchAll(PDO::FETCH_ASSOC);
-	$total_reg = @count($res);	
-  	for($i=0; $i < $total_reg; $i++){
-	foreach ($res[$i] as $key => $value){}
-
-		$total_vendas += $res[$i]['valor'];
-
-	}
-
-
-
-	//totalizar contas recebidas
-  	$query = $pdo->query("SELECT * FROM receber where data_pgto >= '$dataInicial' and data_pgto <= '$dataFinal' and tipo = 'Conta' and pago = 'Sim' ORDER BY data_pgto asc");
-	$res = $query->fetchAll(PDO::FETCH_ASSOC);
-	$total_reg = @count($res);	
-  	for($i=0; $i < $total_reg; $i++){
-	foreach ($res[$i] as $key => $value){}
-
-		$total_receber += $res[$i]['valor'];
-
-	}
-
-
-
-
-
-	//totalizar contas despesas
-  	$query = $pdo->query("SELECT * FROM pagar where data_pgto >= '$dataInicial' and data_pgto <= '$dataFinal' and tipo = 'Conta' and pago = 'Sim' ORDER BY data_pgto asc");
-	$res = $query->fetchAll(PDO::FETCH_ASSOC);
-	$total_reg = @count($res);	
-  	for($i=0; $i < $total_reg; $i++){
-	foreach ($res[$i] as $key => $value){}
-
-		$total_pagar += $res[$i]['valor'];
-
-	}
-
-
-
-
-	//totalizar contas compras
-  	$query = $pdo->query("SELECT * FROM pagar where data_pgto >= '$dataInicial' and data_pgto <= '$dataFinal' and tipo = 'Compra' and pago = 'Sim' ORDER BY data_pgto asc");
-	$res = $query->fetchAll(PDO::FETCH_ASSOC);
-	$total_reg = @count($res);	
-  	for($i=0; $i < $total_reg; $i++){
-	foreach ($res[$i] as $key => $value){}
-
-		$total_compras += $res[$i]['valor'];
-
-	}
-
-
-
-
-
-	//totalizar contas despesas
-  	$query = $pdo->query("SELECT * FROM pagar where data_pgto >= '$dataInicial' and data_pgto <= '$dataFinal' and tipo = 'Comissão' and pago = 'Sim' ORDER BY data_pgto asc");
-	$res = $query->fetchAll(PDO::FETCH_ASSOC);
-	$total_reg = @count($res);	
-  	for($i=0; $i < $total_reg; $i++){
-	foreach ($res[$i] as $key => $value){}
-
-		$total_comissoes += $res[$i]['valor'];
-
-	}
-		
-
-	$total_servicosF = number_format($total_servicos, 2, ',', '.');	
-	$total_vendasF = number_format($total_vendas, 2, ',', '.');
-	$total_receberF = number_format($total_receber, 2, ',', '.');	
-	$total_pagarF = number_format($total_pagar, 2, ',', '.');	
-	$total_comprasF = number_format($total_compras, 2, ',', '.');	
-	$total_comissoesF = number_format($total_comissoes, 2, ',', '.');
-
-	$total_entradas = $total_servicos + $total_vendas + $total_receber;	
-	$total_saidas = $total_pagar + $total_compras + $total_comissoes;
-
-	$total_entradasF = number_format($total_entradas, 2, ',', '.');	
-	$total_saidasF = number_format($total_saidas, 2, ',', '.');	
-
-	$saldo_total = $total_entradas - $total_saidas;
-
-	$saldo_totalF = number_format($saldo_total, 2, ',', '.');
-
-	if($saldo_total < 0){
-		$classe_saldo = 'text-danger';
-		$classe_img = 'negativo.jpg';
-
-	}else{
-		$classe_saldo = 'text-success';
-		$classe_img = 'positivo.jpg';
-	}
-
-  	 ?>
-
-    <tr align="center" class="">
-
-<td class="text-success">R$ <?php echo $total_servicosF ?></td>
-<td class="text-success">R$ <?php echo $total_vendasF ?></td>
-<td class="text-success">R$ <?php echo $total_receberF ?></td>
-<td class="text-danger">R$ <?php echo $total_pagarF ?></td>
-<td class="text-danger">R$ <?php echo $total_comprasF ?></td>
-<td class="text-danger">R$ <?php echo $total_comissoesF ?></td>
-
-    </tr>
-
-
- <tr align="center" class="">
-<td style="background: #e6ffe8" colspan="3" scope="col">Total de Entradas / Ganhos</td>
-<td style="background: #ffe7e6" colspan="3" scope="col">Total de Saídas / Despesas</td>
-</tr>
-
- <tr align="center" class="">
-<td colspan="3" class="text-success"> R$ <?php echo $total_entradasF ?></td>
-<td colspan="3" class="text-danger"> R$ <?php echo $total_saidasF ?></td>
-</tr>
-  
-  </tbody>
-</table>
-	</div>
-
-
-
-	<div class="col-md-12 p-2">
-		<div class="" align="center" style="margin-right: 20px">
-
-			<img src="<?php echo $url_sistema ?>/sistema/img/<?php echo $classe_img ?>" width="100px">
-			<span class="<?php echo $classe_saldo ?>">R$ <?php echo $saldo_totalF ?></span>
-
-				
-		</div>
-	</div>
-	
-
-
-	<div class="footer"  align="center">
-		<span style="font-size:10px"><?php echo $nome_sistema ?> Whatsapp: <?php echo $whatsapp_sistema ?></span> 
-	</div>
+<body>
+    <header class="cabecalho-info">
+        <div class="titulo-relatorio">Demonstrativo de Lucro</div>
+        <div class="data-relatorio"><?php echo ucwords($data_hoje); ?></div>
+        <img class="imagem-logo" src="<?php echo $url_sistema; ?>/sistema/img/logo_rel.jpg">
+    </header>
+
+    <div class="cabecalho-principal"></div>
+
+    <main class="mx-2">
+        <div class="texto-apuracao"><?php echo $texto_apuracao; ?></div>
+        <table class="table table-striped relatorio-tabela">
+            <thead>
+                <tr>
+                    <th scope="col">Serviços</th>
+                    <th scope="col">Vendas</th>
+                    <th scope="col">Recebimentos</th>
+                    <th scope="col">Despesas</th>
+                    <th scope="col">Compras</th>
+                    <th scope="col">Comissões</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="text-success">R$ <?php echo number_format($totais['servicos'], 2, ',', '.'); ?></td>
+                    <td class="text-success">R$ <?php echo number_format($totais['vendas'], 2, ',', '.'); ?></td>
+                    <td class="text-success">R$ <?php echo number_format($totais['receber'], 2, ',', '.'); ?></td>
+                    <td class="text-danger">R$ <?php echo number_format($totais['pagar'], 2, ',', '.'); ?></td>
+                    <td class="text-danger">R$ <?php echo number_format($totais['compras'], 2, ',', '.'); ?></td>
+                    <td class="text-danger">R$ <?php echo number_format($totais['comissoes'], 2, ',', '.'); ?></td>
+                </tr>
+                <tr>
+                    <td style="background: #e6ffe8" colspan="3" scope="col">Total de Entradas / Ganhos</td>
+                    <td style="background: #ffe7e6" colspan="3" scope="col">Total de Saídas / Despesas</td>
+                </tr>
+                <tr>
+                    <td colspan="3" class="text-success" style="font-weight: bold;">R$ <?php echo number_format($total_entradas, 2, ',', '.'); ?></td>
+                    <td colspan="3" class="text-danger" style="font-weight: bold;">R$ <?php echo number_format($total_saidas, 2, ',', '.'); ?></td>
+                </tr>
+            </tbody>
+        </table>
+    </main>
+
+    <div class="resumo-final">
+        <img src="<?php echo $url_sistema ?>/sistema/img/<?php echo $classe_img ?>" width="100px">
+        <span class="<?php echo $classe_saldo ?>">R$ <?php echo $saldo_totalF ?></span>
+    </div>
+
+    <div class="footer">
+        <span><?php echo $nome_sistema; ?> | Whatsapp: <?php echo $whatsapp_sistema; ?></span>
+    </div>
 
 </body>
 </html>

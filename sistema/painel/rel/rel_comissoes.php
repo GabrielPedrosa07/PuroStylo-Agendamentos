@@ -1,455 +1,199 @@
-<?php 
-include('../../conexao.php');
+<?php
+// Inclui a conexão (garanta que em 'conexao.php' a conexão PDO está com 'charset=utf8mb4')
+include_once '../../conexao.php';
 
-setlocale(LC_TIME, 'pt_BR', 'pt_BR.utf-8', 'pt_BR.utf-8', 'portuguese');
-date_default_timezone_set('America/Sao_Paulo');
-$data_hoje = utf8_encode(strftime('%A, %d de %B de %Y', strtotime('today')));
+// --- TRATAMENTO DAS VARIÁVEIS DE ENTRADA ---
+// No novo fluxo, estas variáveis vêm diretamente do script "orquestrador", não do $_GET.
 
-$dataInicial = $_GET['dataInicial'];
-$dataFinal = $_GET['dataFinal'];
-$pago = $_GET['pago'];
-$funcionario = $_GET['funcionario'];
+// --- LÓGICA DE PREPARAÇÃO DO RELATÓRIO ---
+$dataInicialF = (new DateTime($dataInicial))->format('d/m/Y');
+$dataFinalF = (new DateTime($dataFinal))->format('d/m/Y');
 
-$dataInicialF = implode('/', array_reverse(explode('-', $dataInicial)));
-$dataFinalF = implode('/', array_reverse(explode('-', $dataFinal)));
-
-if($dataInicial == $dataFinal){
-	$texto_apuracao = 'APURADO EM '.$dataInicialF;
-}else if($dataInicial == '1980-01-01'){
-	$texto_apuracao = 'APURADO EM TODO O PERÍODO';
-}else{
-	$texto_apuracao = 'APURAÇÃO DE '.$dataInicialF. ' ATÉ '.$dataFinalF;
+if ($dataInicial == $dataFinal) {
+    $texto_apuracao = 'APURADO EM ' . $dataInicialF;
+} elseif ($dataInicial == '1980-01-01') {
+    $texto_apuracao = 'APURADO EM TODO O PERÍodo';
+} else {
+    $texto_apuracao = 'APURAÇÃO DE ' . $dataInicialF . ' ATÉ ' . $dataFinalF;
 }
 
-
-
-if($pago == ''){
-	$acao_rel = '';
-}else{
-	if($pago == 'Sim'){
-		$acao_rel = ' Pagas ';
-	}else{
-		$acao_rel = ' Pendentes ';
-	}
-	
+$acao_rel = '';
+if ($pago == 'Sim') {
+    $acao_rel = ' Pagas ';
+} elseif ($pago == 'Não') {
+    $acao_rel = ' Pendentes ';
 }
 
-$pago = '%'.$pago.'%';
-
-
-if($funcionario == ''){
-	$nome_func = '';
-}else{
-	$query = $pdo->query("SELECT * FROM usuarios where id = '$funcionario'");
-	$res = $query->fetchAll(PDO::FETCH_ASSOC);	
-	$nome_func = ' - Funcionário: '.$res[0]['nome'];
-	$nome_func2 = $res[0]['nome'];
-	$tel_func = $res[0]['telefone'];
-	$pix_func = ' <b>Chave:</b> '.$res[0]['tipo_chave'].' <b>Pix:</b> '.$res[0]['chave_pix'];
+// --- GERAÇÃO DA DATA ATUAL (Método Moderno) ---
+try {
+    $fmt = new IntlDateFormatter('pt_BR', IntlDateFormatter::FULL, IntlDateFormatter::NONE, 'America/Sao_Paulo');
+    $data_hoje = $fmt->format(new DateTime());
+} catch (Exception $e) {
+    date_default_timezone_set('America/Sao_Paulo');
+    $data_hoje = date('d/m/Y');
 }
 
-$funcionario = '%'.$funcionario.'%';
+// --- CONSTRUÇÃO DINÂMICA E SEGURA DA CONSULTA ---
+// Começamos com a base da query e vamos adicionar filtros conforme necessário.
+$query_sql = "
+    SELECT 
+        p.valor, p.data_lanc, p.data_venc, p.data_pgto, p.pago,
+        func.nome AS nome_funcionario, func.telefone AS tel_funcionario, 
+        func.tipo_chave AS tipo_chave_pix, func.chave_pix,
+        cli.nome AS nome_cliente,
+        serv.nome AS nome_servico
+    FROM 
+        pagar p
+    LEFT JOIN 
+        usuarios func ON p.funcionario = func.id
+    LEFT JOIN 
+        clientes cli ON p.cliente = cli.id
+    LEFT JOIN 
+        servicos serv ON p.servico = serv.id
+    WHERE 
+        p.data_lanc >= :dataInicial 
+        AND p.data_lanc <= :dataFinal 
+        AND p.pago LIKE :pago 
+        AND p.tipo = 'Comissão'
+";
 
-?>
+// Array de parâmetros para o prepared statement
+$params = [
+    ':dataInicial' => $dataInicial,
+    ':dataFinal' => $dataFinal,
+    ':pago' => '%' . $pago . '%'
+];
 
-<!DOCTYPE html>
-<html>
-<head>
-	<title>Relatório de Comissões</title>
-	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-wEmeIV1mKuiNpC+IOBjI7aAzPcEZeedi5yW5f2yOq55WWLwNGmvvx4Um1vskeMj0" crossorigin="anonymous">
+// Adiciona o filtro de funcionário apenas se um foi selecionado
+if (!empty($funcionario)) {
+    $query_sql .= " AND p.funcionario = :funcionario";
+    $params[':funcionario'] = $funcionario;
+}
 
+$query_sql .= " ORDER BY p.pago ASC, p.data_venc ASC";
 
-<style>
+// Executa a consulta única
+$query = $pdo->prepare($query_sql);
+$query->execute($params);
+$comissoes = $query->fetchAll(PDO::FETCH_ASSOC);
 
-		@page {
-			margin: 0px;
-
-		}
-
-		body{
-			margin-top:5px;
-			font-family:Times, "Times New Roman", Georgia, serif;
-		}		
-
-			.footer {
-				margin-top:20px;
-				width:100%;
-				background-color: #ebebeb;
-				padding:5px;
-				position:absolute;
-				bottom:0;
-			}
-
-		
-
-		.cabecalho {    
-			padding:10px;
-			margin-bottom:30px;
-			width:100%;
-			font-family:Times, "Times New Roman", Georgia, serif;
-		}
-
-		.titulo_cab{
-			color:#0340a3;
-			font-size:17px;
-		}
-
-		
-		
-		.titulo{
-			margin:0;
-			font-size:28px;
-			font-family:Arial, Helvetica, sans-serif;
-			color:#6e6d6d;
-
-		}
-
-		.subtitulo{
-			margin:0;
-			font-size:12px;
-			font-family:Arial, Helvetica, sans-serif;
-			color:#6e6d6d;
-		}
-
-
-
-		hr{
-			margin:8px;
-			padding:0px;
-		}
-
-
-		
-		.area-cab{
-			
-			display:block;
-			width:100%;
-			height:10px;
-
-		}
-
-		
-		.coluna{
-			margin: 0px;
-			float:left;
-			height:30px;
-		}
-
-		.area-tab{
-			
-			display:block;
-			width:100%;
-			height:30px;
-
-		}
-
-
-		.imagem {
-			width: 150px;
-			position:absolute;
-			right:20px;
-			top:10px;
-		}
-
-		.titulo_img {
-			position: absolute;
-			margin-top: 10px;
-			margin-left: 10px;
-
-		}
-
-		.data_img {
-			position: absolute;
-			margin-top: 40px;
-			margin-left: 10px;
-			border-bottom:1px solid #000;
-			font-size: 10px;
-		}
-
-		.endereco {
-			position: absolute;
-			margin-top: 50px;
-			margin-left: 10px;
-			border-bottom:1px solid #000;
-			font-size: 10px;
-		}
-
-		.verde{
-			color:green;
-		}
-
-
-
-		table.borda {
-    		border-collapse: collapse; /* CSS2 */
-    		background: #FFF;
-    		font-size:12px;
-    		vertical-align:middle;
-		}
- 
-		table.borda td {
-		    border: 1px solid #dbdbdb;
-		}
-		 
-		table.borda th {
-		    border: 1px solid #dbdbdb;
-		    background: #ededed;
-		    font-size:13px;
-		}
-				
-
-	</style>
-
-
-</head>
-<body>	
-
-	<div class="titulo_cab titulo_img"><u>Relatório de Comissões <?php echo $acao_rel ?>  <?php echo $nome_func ?></u></div>	
-	<div class="data_img"><?php echo mb_strtoupper($data_hoje) ?></div>
-
-	<img class="imagem" src="<?php echo $url_sistema ?>/sistema/img/logo_rel.jpg" width="150px">
-
-	
-	<br><br><br>
-	<div class="cabecalho" style="border-bottom: solid 1px #0340a3">
-	</div>
-
-	<div class="mx-2" >
-
-		<section class="area-cab">
-			
-			<div>
-				<small><small><small><u><?php echo $texto_apuracao ?></u></small></small></small>
-			</div>
-
-	
-			</section>
-
-			<br>
-
-		<?php 
-		$total_pago = 0;
+// Inicializa totais e informações do funcionário (se filtrado)
+$total_pago = 0;
 $total_a_pagar = 0;
-$total_pendente = 0;
+$info_funcionario = null;
+if (!empty($funcionario) && !empty($comissoes)) {
+    // Se filtramos por um funcionário e encontramos resultados, pegamos os dados dele da primeira linha
+    $info_funcionario = [
+        'nome' => $comissoes[0]['nome_funcionario'],
+        'tel' => $comissoes[0]['tel_funcionario'],
+        'pix' => '<b>Chave:</b> ' . $comissoes[0]['tipo_chave_pix'] . ' <b>Pix:</b> ' . $comissoes[0]['chave_pix']
+    ];
+}
+?>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Relatório de Comissões</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-wEmeIV1mKuiNpC+IOBjI7aAzPcEZeedi5yW5f2yOq55WWLwNGmvvx4Um1vskeMj0" crossorigin="anonymous">
+    <style>
+        @page { margin: 0; }
+        body { font-family: 'Times New Roman', Times, serif; margin: 5px 20px; }
+        .footer { width: 100%; background-color: #ebebeb; padding: 5px; position: absolute; bottom: 0; text-align: center; font-size: 10px; }
+        .cabecalho-principal { padding: 10px 0; margin-bottom: 20px; width: 100%; border-bottom: 1px solid #0340a3; }
+        .cabecalho-info { position: relative; height: 120px; }
+        .imagem-logo { width: 150px; position: absolute; right: 0; top: 10px; }
+        .titulo-relatorio, .data-relatorio { position: absolute; left: 0; }
+        .titulo-relatorio { top: 10px; font-size: 17px; font-weight: bold; text-decoration: underline; }
+        .data-relatorio { top: 40px; font-size: 12px; }
+        .texto-apuracao { font-size: 10px; text-decoration: underline; margin-bottom: 15px; }
+        table.relatorio-tabela { width: 100%; border-collapse: collapse; font-size: 12px; vertical-align: middle; }
+        table.relatorio-tabela th, table.relatorio-tabela td { border: 1px solid #dbdbdb; padding: 6px; text-align: center; }
+        table.relatorio-tabela th { background-color: #ededed; font-size: 13px; }
+        .texto-esquerda { text-align: left; }
+        .resumo-relatorio, .info-funcionario { text-align: right; margin: 20px 0; font-size: 10px; font-weight: bold; }
+        .resumo-relatorio span { margin-left: 20px; }
+        .info-funcionario { text-align: center; font-size: 12px; }
+        .info-funcionario span { margin: 0 15px; }
+        .status-img { width: 11px; height: 11px; margin-right: 5px; }
+        .vermelho-escuro { color: #a30303; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <header class="cabecalho-info">
+        <div class="titulo-relatorio">Relatório de Comissões <?php echo $acao_rel . ($info_funcionario ? ' - Funcionário: ' . $info_funcionario['nome'] : ''); ?></div>
+        <div class="data-relatorio"><?php echo ucwords($data_hoje); ?></div>
+        <img class="imagem-logo" src="<?php echo $url_sistema; ?>/sistema/img/logo_rel.jpg">
+    </header>
+    <div class="cabecalho-principal"></div>
+    <main class="mx-2">
+        <div class="texto-apuracao"><?php echo $texto_apuracao; ?></div>
+        <?php if (!empty($comissoes)): ?>
+            <table class="table table-striped relatorio-tabela">
+                <thead>
+                    <tr>
+                        <th class="texto-esquerda">Serviço</th>
+                        <th>Valor</th>
+                        <th>Funcionário</th>
+                        <th>Data Serviço</th>
+                        <th>Vencimento</th>
+                        <th>Cliente</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($comissoes as $comissao):
+                        $classe_debito = '';
+                        $imagem = 'vermelho.jpg';
+                        if ($comissao['pago'] == 'Sim') {
+                            $total_pago += $comissao['valor'];
+                            $imagem = 'verde.jpg';
+                        } else {
+                            $total_a_pagar += $comissao['valor'];
+                            // Verifica se está vencido
+                            if (new DateTime($comissao['data_venc']) < new DateTime(date('Y-m-d'))) {
+                                $classe_debito = 'vermelho-escuro';
+                            }
+                        }
+                    ?>
+                    <tr class="<?php echo $classe_debito; ?>">
+                        <td class="texto-esquerda">
+                            <img class="status-img" src="<?php echo $url_sistema; ?>/sistema/img/<?php echo $imagem; ?>">
+                            <?php echo htmlspecialchars($comissao['nome_servico'] ?? 'N/A'); ?>
+                        </td>
+                        <td>R$ <?php echo number_format($comissao['valor'], 2, ',', '.'); ?></td>
+                        <td><?php echo htmlspecialchars($comissao['nome_funcionario'] ?? 'N/A'); ?></td>
+                        <td><?php echo (new DateTime($comissao['data_lanc']))->format('d/m/Y'); ?></td>
+                        <td><?php echo (new DateTime($comissao['data_venc']))->format('d/m/Y'); ?></td>
+                        <td><?php echo htmlspecialchars($comissao['nome_cliente'] ?? 'N/A'); ?></td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php else: ?>
+            <p>Nenhum registro encontrado para os filtros selecionados!</p>
+        <?php endif; ?>
+    </main>
+    <?php if (!empty($comissoes)): ?>
+    <div class="resumo-relatorio">
+        <span>TOTAL DE COMISSÕES: <?php echo count($comissoes); ?></span>
+        <span class="text-success">TOTAL PAGO: R$ <?php echo number_format($total_pago, 2, ',', '.'); ?></span>
+        <span class="text-danger">TOTAL A PAGAR: R$ <?php echo number_format($total_a_pagar, 2, ',', '.'); ?></span>
+    </div>
+    <div class="cabecalho-principal"></div>
+    <?php endif; ?>
 
-		$query = $pdo->query("SELECT * FROM pagar where data_lanc >= '$dataInicial' and data_lanc <= '$dataFinal' and pago LIKE '$pago' and funcionario LIKE '$funcionario' and tipo = 'Comissão' ORDER BY pago asc, data_venc asc");
-	$res = $query->fetchAll(PDO::FETCH_ASSOC);
-	$total_reg = @count($res);
-	if($total_reg > 0){
-		 ?>
+    <?php if ($info_funcionario): ?>
+    <div class="info-funcionario">
+        <span><b>Funcionário:</b> <?php echo $info_funcionario['nome']; ?></span>
+        <span><b>Telefone:</b> <?php echo $info_funcionario['tel']; ?></span>
+        <span><?php echo $info_funcionario['pix']; ?></span>
+        <span class="text-danger"><b>Total a Receber:</b> R$ <?php echo number_format($total_a_pagar, 2, ',', '.'); ?></span>
+    </div>
+    <div class="cabecalho-principal"></div>
+    <?php endif; ?>
 
-	<table class="table table-striped borda" cellpadding="6">
-  <thead>
-    <tr align="center">
-      <th scope="col">Serviço</th>
-      <th scope="col">Valor</th>
-      <th scope="col">Funcionário</th>
-      <th scope="col">Data Serviço</th>
-      <th scope="col">Pagamento</th>
-      <th scope="col">Cliente</th>
-    </tr>
-  </thead>
-  <tbody>
-
-  	<?php 
-  	for($i=0; $i < $total_reg; $i++){
-	foreach ($res[$i] as $key => $value){}
-	$id = $res[$i]['id'];	
-	$descricao = $res[$i]['descricao'];
-	$tipo = $res[$i]['tipo'];
-	$valor = $res[$i]['valor'];
-	$data_lanc = $res[$i]['data_lanc'];
-	$data_pgto = $res[$i]['data_pgto'];
-	$data_venc = $res[$i]['data_venc'];
-	$usuario_lanc = $res[$i]['usuario_lanc'];
-	$usuario_baixa = $res[$i]['usuario_baixa'];
-	$foto = $res[$i]['foto'];
-	$pessoa = $res[$i]['pessoa'];
-	$funcionario = $res[$i]['funcionario'];
-	$cliente = $res[$i]['cliente'];
-	
-	$pago = $res[$i]['pago'];
-	$servico = $res[$i]['servico'];
-	
-	$valorF = number_format($valor, 2, ',', '.');
-	$data_lancF = implode('/', array_reverse(explode('-', $data_lanc)));
-	$data_pgtoF = implode('/', array_reverse(explode('-', $data_pgto)));
-	$data_vencF = implode('/', array_reverse(explode('-', $data_venc)));
-	
-
-		$query2 = $pdo->query("SELECT * FROM clientes where id = '$pessoa'");
-		$res2 = $query2->fetchAll(PDO::FETCH_ASSOC);
-		$total_reg2 = @count($res2);
-		if($total_reg2 > 0){
-			$nome_pessoa = $res2[0]['nome'];
-			$telefone_pessoa = $res2[0]['telefone'];
-		}else{
-			$nome_pessoa = 'Nenhum!';
-			$telefone_pessoa = 'Nenhum';
-		}
-
-
-		$query2 = $pdo->query("SELECT * FROM usuarios where id = '$usuario_baixa'");
-		$res2 = $query2->fetchAll(PDO::FETCH_ASSOC);
-		$total_reg2 = @count($res2);
-		if($total_reg2 > 0){
-			$nome_usuario_pgto = $res2[0]['nome'];
-		}else{
-			$nome_usuario_pgto = 'Nenhum!';
-		}
-
-
-
-		$query2 = $pdo->query("SELECT * FROM clientes where id = '$cliente'");
-		$res2 = $query2->fetchAll(PDO::FETCH_ASSOC);
-		$total_reg2 = @count($res2);
-		if($total_reg2 > 0){
-			$nome_cliente = $res2[0]['nome'];
-		}else{
-			$nome_cliente = 'Nenhum!';
-		}
-
-
-
-		$query2 = $pdo->query("SELECT * FROM usuarios where id = '$usuario_lanc'");
-		$res2 = $query2->fetchAll(PDO::FETCH_ASSOC);
-		$total_reg2 = @count($res2);
-		if($total_reg2 > 0){
-			$nome_usuario_lanc = $res2[0]['nome'];
-		}else{
-			$nome_usuario_lanc = 'Sem Referência!';
-		}
-
-
-
-		$query2 = $pdo->query("SELECT * FROM usuarios where id = '$funcionario'");
-		$res2 = $query2->fetchAll(PDO::FETCH_ASSOC);
-		$total_reg2 = @count($res2);
-		if($total_reg2 > 0){
-			$nome_func = $res2[0]['nome'];
-			$chave_pix_func = $res2[0]['chave_pix'];
-			$tipo_chave_func = $res2[0]['tipo_chave'];
-		}else{
-			$nome_func = 'Sem Referência!';
-			$chave_pix_func = '';
-			$tipo_chave_func = '';
-
-		}		
-
-
-		$query2 = $pdo->query("SELECT * FROM servicos where id = '$servico'");
-		$res2 = $query2->fetchAll(PDO::FETCH_ASSOC);
-		$total_reg2 = @count($res2);
-		if($total_reg2 > 0){
-			$nome_serv = $res2[0]['nome'];
-		}else{
-			$nome_serv = 'Sem Referência!';
-		}
-
-
-		if($data_pgto == '0000-00-00'){
-			$classe_alerta = 'text-danger';
-			$data_pgtoF = 'Pendente';
-			$visivel = '';
-			$total_a_pagar += $valor;
-			$total_pendente += 1;
-			$imagem = 'vermelho.jpg';
-		}else{
-			$classe_alerta = 'verde';
-			$visivel = 'ocultar';
-			$total_pago += $valor;
-			$imagem = 'verde.jpg';
-		}
-
-		
-
-
-			if($data_venc < $data_hoje and $pago != 'Sim'){
-				$classe_debito = 'vermelho-escuro';
-			}else{
-				$classe_debito = '';
-			}
-		
-
-		$total_pagoF = number_format($total_pago, 2, ',', '.');
-		$total_a_pagarF = number_format($total_a_pagar, 2, ',', '.');
-
-		
-  	 ?>
-
-    <tr align="center" class="<?php echo $classe_debito ?>">
-      <td align="left">
-      		<img src="<?php echo $url_sistema ?>/sistema/img/<?php echo $imagem ?>" width="11px" height="11px" style="margin-top:3px">
-<?php echo $nome_serv ?>
-</td>
-<td class="esc">R$ <?php echo $valorF ?></td>
-<td class="esc"><?php echo $nome_func ?></td>
-<td class="esc"><?php echo $data_lancF ?></td>
-<td class="esc"><?php echo $data_vencF ?></td>
-<td class="esc"><?php echo $nome_cliente ?></td>
-    </tr>
-
-<?php } ?>
-  
-  </tbody>
-</table>
-
-<?php }else{
-echo 'Não possuem registros para serem exibidos!';
-exit();
-} ?>
-
-	</div>
-
-
-
-	<div class="col-md-12 p-2">
-		<div class="" align="right" style="margin-right: 20px">
-
-			<span class=""> <small><small><small><small>TOTAL DE COMISSÕES</small> : <?php echo @$total_reg ?></small></small></small>  </span>
-
-		<span class="text-success"> <small><small><small><small>TOTAL PAGO R$</small> : <?php echo @$total_pagoF ?></small></small></small>  </span>
-
-		<span class="text-danger"> <small><small><small><small>TOTAL À PAGAR R$</small> : <?php echo @$total_a_pagarF ?></small></small></small>  </span>
-
-
-				
-		</div>
-	</div>
-	<div class="cabecalho" style="border-bottom: solid 1px #0340a3">
-	</div>
-
-
-
-
-
-	<?php if($funcionario != ""){?>	
-
-	<div class="col-md-12 p-2" align="center">
-		<div class="">			
-			<small><small>
-			<span class=""> <b>Funcionário</b> : <?php echo @$nome_func2 ?> </span>
-
-			<span class=""> <b>Telefone</b> : <?php echo @$tel_func ?> </span>
-
-			<span class="">  <?php echo @$pix_func ?> </span>
-
-		<span class="text-success"> <b>Total à Receber</b> : <?php echo @$total_a_pagarF ?>  </span>
-	</small></small>
-
-				
-		</div>
-	</div>
-	<div class="cabecalho" style="border-bottom: solid 1px #0340a3">
-	</div>
-
-		<?php } ?>
-
-
-
-	<div class="footer"  align="center">
-		<span style="font-size:10px"><?php echo $nome_sistema ?> Whatsapp: <?php echo $whatsapp_sistema ?></span> 
-	</div>
-
+    <div class="footer">
+        <span><?php echo $nome_sistema; ?> | Whatsapp: <?php echo $whatsapp_sistema; ?></span>
+    </div>
 </body>
 </html>

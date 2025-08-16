@@ -1,48 +1,57 @@
-<?php 
+<?php
 
-include('../../conexao.php');
+// Inclui a conexão e as configurações globais
+include_once '../../conexao.php';
 
+// Recebe os dados do formulário via POST
 $dataInicial = $_POST['dataInicial'];
 $dataFinal = $_POST['dataFinal'];
-$pago = urlencode($_POST['pago']);
-$tabela = urlencode($_POST['tabela']);
-$busca = urlencode($_POST['busca']);
+$pago = $_POST['pago'];
+$tabela = $_POST['tabela'];
+$busca = $_POST['busca'];
 
-//ALIMENTAR OS DADOS NO RELATÓRIO
-$html = file_get_contents($url_sistema."sistema/painel/rel/rel_contas.php?pago=$pago&dataInicial=$dataInicial&dataFinal=$dataFinal&tabela=$tabela&busca=$busca");
-
-if($tipo_rel != 'PDF'){
-	echo $html;
-	exit();
+// Se o tipo de relatório não for PDF, gera o HTML e para (útil para depuração)
+if ($tipo_rel != 'PDF') {
+    include 'rel_contas.php';
+    exit();
 }
 
-//CARREGAR DOMPDF
+// --- GERAÇÃO DO PDF ---
+
+// 1. CARREGAR A BIBLIOTECA DOMPDF
 require_once '../../dompdf/autoload.inc.php';
 use Dompdf\Dompdf;
 use Dompdf\Options;
 
-header("Content-Transfer-Encoding: binary");
-header("Content-Type: image/png");
+// 2. CAPTURAR O HTML DO RELATÓRIO USANDO OUTPUT BUFFERING
+ob_start();
 
-//INICIALIZAR A CLASSE DO DOMPDF
+// As variáveis ($dataInicial, $dataFinal, $pago, etc.) já estão disponíveis para o arquivo incluído
+include 'rel_contas.php';
+
+$html = ob_get_contents(); // Pega o HTML gerado e armazena na variável
+ob_end_clean(); // Limpa o buffer
+
+// 3. INICIALIZAR E CONFIGURAR O DOMPDF
 $options = new Options();
-$options->set('isRemoteEnabled', true);
-$pdf = new DOMPDF($options);
+$options->set('isRemoteEnabled', true); // Permite carregar imagens de URLs
 
+$pdf = new Dompdf($options);
 
-
-//Definir o tamanho do papel e orientação da página
-$pdf->set_paper('A4', 'portrait');
-
-//CARREGAR O CONTEÚDO HTML
+// 4. CARREGAR O HTML NO DOMPDF
 $pdf->load_html($html);
 
-//RENDERIZAR O PDF
+// 5. DEFINIR O TAMANHO E A ORIENTAÇÃO DO PAPEL
+$pdf->set_paper('A4', 'portrait');
+
+// 6. RENDERIZAR O HTML PARA PDF
 $pdf->render();
 
-//NOMEAR O PDF GERADO
+// 7. ENVIAR O PDF PARA O NAVEgador
+// A função stream() já configura os headers HTTP corretos
 $pdf->stream(
-'contas.pdf',
-array("Attachment" => false)
+    'relatorio_contas.pdf',
+    array("Attachment" => false) // false = visualizar, true = forçar download
 );
+
 ?>
