@@ -1,56 +1,82 @@
-<?php 
-$tabela = 'agendamentos';
+<?php
 require_once("../../../conexao.php");
-
 @session_start();
-$usuario_logado = @$_SESSION['id'];
+$usuario_logado = $_SESSION['id'] ?? 0;
 
+// --- Recebendo e validando os dados do formulário ---
 $cliente = $_POST['cliente'];
 $data = $_POST['data'];
-$hora = @$_POST['hora'];
+$hora = $_POST['hora'] ?? '';
 $obs = $_POST['obs'];
-$id = $_POST['id'];
+$id = $_POST['id']; // ID do agendamento, se for uma edição
 $funcionario = $_POST['id_funcionario'];
 $servico = $_POST['servico'];
 
-if(@$hora == ""){
-	echo 'Selecione um Horário antes de agendar!';
-	exit();
+if (empty($hora)) {
+    echo 'Selecione um Horário antes de agendar!';
+    exit();
 }
 
-$diasemana = array("Domingo", "Segunda-Feira", "Terça-Feira", "Quarta-Feira", "Quinta-Feira", "Sexta-Feira", "Sabado");
-$diasemana_numero = date('w', strtotime($data));
-$dia_procurado = $diasemana[$diasemana_numero];
+try {
+    // --- 1. VERIFICA SE O FUNCIONÁRIO TRABALHA NO DIA (DE FORMA SEGURA) ---
+    $diasemana = ["Domingo", "Segunda-Feira", "Terça-Feira", "Quarta-Feira", "Quinta-Feira", "Sexta-Feira", "Sabado"];
+    $diasemana_numero = date('w', strtotime($data));
+    $dia_procurado = $diasemana[$diasemana_numero];
 
-//percorrer os dias da semana que ele trabalha
-$query = $pdo->query("SELECT * FROM dias where funcionario = '$funcionario' and dia = '$dia_procurado'");
-$res = $query->fetchAll(PDO::FETCH_ASSOC);
-if(@count($res) == 0){
-		echo 'Este Funcionário não trabalha neste Dia!';
-	exit();
+    $query_dia = $pdo->prepare("SELECT id FROM dias WHERE funcionario = :funcionario AND dia = :dia");
+    $query_dia->bindValue(':funcionario', $funcionario);
+    $query_dia->bindValue(':dia', $dia_procurado);
+    $query_dia->execute();
+    if ($query_dia->rowCount() == 0) {
+        echo 'Este Funcionário não trabalha neste Dia!';
+        exit();
+    }
+
+    // --- 2. VERIFICA SE O HORÁRIO JÁ ESTÁ OCUPADO (DE FORMA SEGURA) ---
+    // A consulta muda um pouco se estivermos editando (precisamos ignorar o próprio agendamento)
+    $sql_disponibilidade = "SELECT id FROM agendamentos WHERE data = :data AND hora = :hora AND funcionario = :funcionario";
+    $params_disponibilidade = [
+        ':data' => $data,
+        ':hora' => $hora,
+        ':funcionario' => $funcionario
+    ];
+
+    if (!empty($id)) {
+        // Se é uma edição, exclui o próprio ID da verificação de conflito
+        $sql_disponibilidade .= " AND id != :id";
+        $params_disponibilidade[':id'] = $id;
+    }
+
+    $query_disp = $pdo->prepare($sql_disponibilidade);
+    $query_disp->execute($params_disponibilidade);
+    if ($query_disp->rowCount() > 0) {
+        echo 'Este horário não está disponível!';
+        exit();
+    }
+
+    // --- 3. INSERE OU ATUALIZA O AGENDAMENTO (DE FORMA SEGURA) ---
+    if (empty($id)) {
+        // --- CADASTRAR NOVO AGENDAMENTO ---
+        $query = $pdo->prepare("INSERT INTO agendamentos SET funcionario = :func, cliente = :cli, hora = :hora, data = :data, usuario = :usu, status = 'Agendado', obs = :obs, data_lanc = curDate(), servico = :serv");
+    } else {
+        // --- EDITAR AGENDAMENTO EXISTENTE ---
+        $query = $pdo->prepare("UPDATE agendamentos SET funcionario = :func, cliente = :cli, hora = :hora, data = :data, usuario = :usu, status = 'Agendado', obs = :obs, servico = :serv WHERE id = :id");
+        $query->bindValue(':id', $id);
+    }
+    
+    // Bind dos parâmetros comuns a INSERT e UPDATE
+    $query->bindValue(':func', $funcionario);
+    $query->bindValue(':cli', $cliente);
+    $query->bindValue(':hora', $hora);
+    $query->bindValue(':data', $data);
+    $query->bindValue(':usu', $usuario_logado);
+    $query->bindValue(':obs', $obs);
+    $query->bindValue(':serv', $servico);
+    $query->execute();
+
+    echo 'Salvo com Sucesso';
+
+} catch (PDOException $e) {
+    echo 'Falha ao salvar. Erro: ' . $e->getMessage();
 }
-
-
-
-$dataF = implode('/', array_reverse(explode('-', $data)));
-$horaF = date("H:i", strtotime($hora));
-
-//validar horario
-$query = $pdo->query("SELECT * FROM $tabela where data = '$data' and hora = '$hora' and funcionario = '$funcionario'");
-$res = $query->fetchAll(PDO::FETCH_ASSOC);
-$total_reg = @count($res);
-if($total_reg > 0 and $res[0]['id'] != $id){
-	echo 'Este horário não está disponível!';
-	exit();
-}
-
-
-$query = $pdo->prepare("INSERT INTO $tabela SET funcionario = '$funcionario', cliente = '$cliente', hora = '$hora', data = '$data', usuario = '$usuario_logado', status = 'Agendado', obs = :obs, data_lanc = curDate(), servico = '$servico'");
-
-$query->bindValue(":obs", "$obs");
-$query->execute();
-
-
-echo 'Salvo com Sucesso'; 
-
 ?>

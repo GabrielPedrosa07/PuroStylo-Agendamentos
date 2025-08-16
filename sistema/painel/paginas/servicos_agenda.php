@@ -1,10 +1,7 @@
 <?php 
-@session_start();
 require_once("verificar.php");
 require_once("../conexao.php");
-
 $pag = 'servicos_agenda';
-
 
 //verificar se ele tem a permissão de estar nessa página
 if(@$servicos_agenda == 'ocultar'){
@@ -12,474 +9,215 @@ if(@$servicos_agenda == 'ocultar'){
     exit();
 }
 
-
 $data_hoje = date('Y-m-d');
-$data_ontem = date('Y-m-d', strtotime("-1 days",strtotime($data_hoje)));
+$data_ontem = date('Y-m-d', strtotime("-1 days"));
+$mes_atual = date('Y-m');
+$data_inicio_mes = $mes_atual . '-01';
+$data_final_mes = date('Y-m-t', strtotime($data_hoje)); // Forma mais segura de pegar o último dia do mês
 
-$mes_atual = Date('m');
-$ano_atual = Date('Y');
-$data_inicio_mes = $ano_atual."-".$mes_atual."-01";
+// --- BUSCA DE DADOS INICIAIS (FEITA DE FORMA SEGURA E ORGANIZADA) ---
+$query_func = $pdo->query("SELECT id, nome FROM usuarios WHERE atendimento = 'Sim' ORDER BY nome ASC");
+$funcionarios = $query_func->fetchAll(PDO::FETCH_ASSOC);
 
-if($mes_atual == '4' || $mes_atual == '6' || $mes_atual == '9' || $mes_atual == '11'){
-	$dia_final_mes = '30';
-}else if($mes_atual == '2'){
-	$dia_final_mes = '28';
-}else{
-	$dia_final_mes = '31';
-}
+$query_cli = $pdo->query("SELECT id, nome FROM clientes ORDER BY nome ASC");
+$clientes = $query_cli->fetchAll(PDO::FETCH_ASSOC);
 
-$data_final_mes = $ano_atual."-".$mes_atual."-".$dia_final_mes;
-
-
+$query_serv = $pdo->query("SELECT id, nome FROM servicos ORDER BY nome ASC");
+$servicos = $query_serv->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
-<div class="">      
-	<a class="btn btn-primary" onclick="inserir()" class="btn btn-primary btn-flat btn-pri"><i class="fa fa-plus" aria-hidden="true"></i> Novo Serviço</a>
+<div class="mb-3"> <a class="btn btn-primary" onclick="inserir()" href="#"><i class="fa fa-plus" aria-hidden="true"></i> Novo Serviço</a>
 </div>
 
 <div class="bs-example widget-shadow" style="padding:15px">
 
-	<div class="row">
-		<div class="col-md-5" style="margin-bottom:5px;">
-			<div style="float:left; margin-right:10px"><span><small><i title="Data de Vencimento Inicial" class="fa fa-calendar-o"></i></small></span></div>
-			<div  style="float:left; margin-right:20px">
-				<input type="date" class="form-control " name="data-inicial"  id="data-inicial-caixa" value="<?php echo $data_hoje ?>" required>
-			</div>
+    <div class="row">
+        <div class="col-md-5 mb-2">
+            <div class="d-flex align-items-center"> <span class="me-2"><small><i title="Data Inicial" class="fa fa-calendar-o"></i></small></span>
+                <input type="date" class="form-control me-3" name="data-inicial" id="data-inicial-caixa" value="<?php echo $data_hoje ?>">
+                
+                <span class="me-2"><small><i title="Data Final" class="fa fa-calendar-o"></i></small></span>
+                <input type="date" class="form-control" name="data-final" id="data-final-caixa" value="<?php echo $data_hoje ?>">
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-2 d-flex align-items-center justify-content-center"> 
+            <div> 
+                <small>
+                    <a title="Filtrar por Ontem" class="text-muted" href="#" onclick="valorData('<?php echo $data_ontem ?>', '<?php echo $data_ontem ?>')">Ontem</a> / 
+                    <a title="Filtrar por Hoje" class="text-muted" href="#" onclick="valorData('<?php echo $data_hoje ?>', '<?php echo $data_hoje ?>')">Hoje</a> / 
+                    <a title="Filtrar por Mês Atual" class="text-muted" href="#" onclick="valorData('<?php echo $data_inicio_mes ?>', '<?php echo $data_final_mes ?>')">Mês</a>
+                </small>
+            </div>
+        </div>
 
-			<div style="float:left; margin-right:10px"><span><small><i title="Data de Vencimento Final" class="fa fa-calendar-o"></i></small></span></div>
-			<div  style="float:left; margin-right:30px">
-				<input type="date" class="form-control " name="data-final"  id="data-final-caixa" value="<?php echo $data_hoje ?>" required>
-			</div>
-		</div>
+        <div class="col-md-4 mb-2 d-flex align-items-center justify-content-center"> 
+            <div> 
+                <small>
+                    <a title="Mostrar Todos" class="text-muted" href="#" onclick="buscarContas('')">Todos</a> / 
+                    <a title="Mostrar Pendentes" class="text-muted" href="#" onclick="buscarContas('Não')">Pendentes</a> / 
+                    <a title="Mostrar Pagos" class="text-muted" href="#" onclick="buscarContas('Sim')">Pagos</a>
+                </small>
+            </div>
+        </div>
+        
+        <input type="hidden" id="buscar-contas">
+    </div>
 
-
-		
-		<div class="col-md-2" style="margin-top:5px;" align="center">	
-			<div > 
-				<small >
-					<a title="Conta de Ontem" class="text-muted" href="#" onclick="valorData('<?php echo $data_ontem ?>', '<?php echo $data_ontem ?>')"><span>Ontem</span></a> / 
-					<a title="Conta de Hoje" class="text-muted" href="#" onclick="valorData('<?php echo $data_hoje ?>', '<?php echo $data_hoje ?>')"><span>Hoje</span></a> / 
-					<a title="Conta do Mês" class="text-muted" href="#" onclick="valorData('<?php echo $data_inicio_mes ?>', '<?php echo $data_final_mes ?>')"><span>Mês</span></a>
-				</small>
-			</div>
-		</div>
-
-
-
-	<div class="col-md-3" style="margin-top:5px;" align="center">	
-			<div > 
-				<small >
-					<a title="Todos os Serviços" class="text-muted" href="#" onclick="buscarContas('')"><span>Todos</span></a> / 
-					<a title="Pendentes" class="text-muted" href="#" onclick="buscarContas('Não')"><span>Pendentes</span></a> / 
-					<a title="Pagos" class="text-muted" href="#" onclick="buscarContas('Sim')"><span>Pagos</span></a>
-				</small>
-			</div>
-		</div>
-
-		<input type="hidden" id="buscar-contas">
-
-	</div>
-
-	<hr>
-	<div id="listar">
-
-	</div>
-	
+    <hr>
+    <div id="listar">
+        </div>
 </div>
 
 
-
-
-
-
-<!-- Modal Inserir-->
 <div class="modal fade" id="modalForm" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-	<div class="modal-dialog" role="document">
-		<div class="modal-content">
-			<div class="modal-header">
-				<h4 class="modal-title"><span id="titulo_inserir"></span></h4>
-				<button id="btn-fechar" type="button" class="close" data-dismiss="modal" aria-label="Close" style="margin-top: -20px">
-					<span aria-hidden="true" >&times;</span>
-				</button>
-			</div>
-			<form id="form">
-				<div class="modal-body">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title"><span id="titulo_inserir"></span></h4>
+                <button id="btn-fechar" type="button" class="close" data-dismiss="modal" aria-label="Close" style="margin-top: -20px">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="form">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 form-group">
+                            <label>Funcionário</label> 
+                            <select class="form-control sel2" name="funcionario" style="width:100%;" required>
+                                <?php foreach ($funcionarios as $func): ?>
+                                    <option value="<?php echo $func['id'] ?>"><?php echo htmlspecialchars($func['nome']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label>Cliente</label> 
+                            <select class="form-control sel2" name="cliente" style="width:100%;" required>
+                                <?php foreach ($clientes as $cli): ?>
+                                    <option value="<?php echo $cli['id'] ?>"><?php echo htmlspecialchars($cli['nome']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
 
-					<div class="row">
-						<div class="col-md-6">						
-							<div class="form-group"> 
-								<label>Funcionário</label> 
-								<select class="form-control sel2" id="funcionario" name="funcionario" style="width:100%;" required> 
-
-									<?php 
-									$query = $pdo->query("SELECT * FROM usuarios where atendimento = 'Sim' ORDER BY nome asc");
-									$res = $query->fetchAll(PDO::FETCH_ASSOC);
-									$total_reg = @count($res);
-									if($total_reg > 0){
-										for($i=0; $i < $total_reg; $i++){
-											foreach ($res[$i] as $key => $value){}
-												echo '<option value="'.$res[$i]['id'].'">'.$res[$i]['nome'].'</option>';
-										}
-									}
-									?>
-
-
-								</select>    
-							</div>						
-						</div>
-
-
-						<div class="col-md-6">						
-							<div class="form-group"> 
-								<label>Clientes</label> 
-								<select class="form-control sel2" id="cliente" name="cliente" style="width:100%;" required> 
-
-									<?php 
-									$query = $pdo->query("SELECT * FROM clientes ORDER BY nome asc");
-									$res = $query->fetchAll(PDO::FETCH_ASSOC);
-									$total_reg = @count($res);
-									if($total_reg > 0){
-										for($i=0; $i < $total_reg; $i++){
-											foreach ($res[$i] as $key => $value){}
-												echo '<option value="'.$res[$i]['id'].'">'.$res[$i]['nome'].'</option>';
-										}
-									}
-									?>
-
-
-								</select>    
-							</div>						
-						</div>
-
-
-											
-
-
-							
-
-					</div>
-
-
-				
-
-
-
-					<div class="row">
-
-							<div class="col-md-5">						
-							<div class="form-group"> 
-								<label>Serviço</label> 
-								<select class="form-control sel2" id="servico" name="servico" style="width:100%;" required> 
-
-									<?php 
-									$query = $pdo->query("SELECT * FROM servicos ORDER BY nome asc");
-									$res = $query->fetchAll(PDO::FETCH_ASSOC);
-									$total_reg = @count($res);
-									if($total_reg > 0){
-										for($i=0; $i < $total_reg; $i++){
-											foreach ($res[$i] as $key => $value){}
-												echo '<option value="'.$res[$i]['id'].'">'.$res[$i]['nome'].'</option>';
-										}
-									}
-									?>
-
-
-								</select>    
-							</div>						
-						</div>
-
-						<div class="col-md-3" id="nasc">						
-							<div class="form-group"> 
-								<label>Valor </label> 
-								<input type="text" class="form-control" name="valor_serv" id="valor_serv" required> 
-							</div>						
-						</div>
-
-
-							<div class="col-md-4" id="nasc">						
-							<div class="form-group"> 
-								<label>Data PGTO</label> 
-								<input type="date" class="form-control" name="data_pgto" id="data_pgto" value="<?php echo date('Y-m-d') ?>"> 
-							</div>						
-						</div>	
-					
-					</div>
-
-
-
-					
-					<input type="hidden" name="id" id="id">
-
-					<br>
-					<small><div id="mensagem" align="center"></div></small>
-				</div>
-
-				<div class="modal-footer">      
-					<button type="submit" class="btn btn-primary">Salvar</button>
-				</div>
-			</form>
-
-			
-		</div>
-	</div>
+                    <div class="row">
+                        <div class="col-md-5 form-group">
+                             <label>Serviço</label> 
+                             <select class="form-control sel2" name="servico" style="width:100%;" required>
+                                <?php foreach ($servicos as $serv): ?>
+                                    <option value="<?php echo $serv['id'] ?>"><?php echo htmlspecialchars($serv['nome']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-md-3 form-group">
+                            <label>Valor</label> 
+                            <input type="text" class="form-control" name="valor_serv" id="valor_serv" required>
+                        </div>
+                        <div class="col-md-4 form-group">
+                            <label>Data Pagamento</label> 
+                            <input type="date" class="form-control" name="data_pgto" id="data_pgto" value="<?php echo $data_hoje ?>">
+                        </div>
+                    </div>
+                    
+                    <input type="hidden" name="id" id="id">
+                    <br>
+                    <small><div id="mensagem" align="center"></div></small>
+                </div>
+                <div class="modal-footer">     
+                    <button type="submit" class="btn btn-primary" id="btn-salvar">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
-
-
-
-
-
-<!-- Modal Dados-->
-<div class="modal fade" id="modalDados" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-	<div class="modal-dialog" role="document">
-		<div class="modal-content">
-			<div class="modal-header">
-				<h4 class="modal-title" id="exampleModalLabel"><span id="nome_dados"></span></h4>
-				<button id="btn-fechar-perfil" type="button" class="close" data-dismiss="modal" aria-label="Close" style="margin-top: -20px">
-					<span aria-hidden="true" >&times;</span>
-				</button>
-			</div>
-			
-			<div class="modal-body">
-
-				<div class="row" style="border-bottom: 1px solid #cac7c7;">
-					<div class="col-md-6">							
-						<span><b>Valor : </b></span>
-						<span id="valor_dados"></span>
-					</div>	
-
-					<div class="col-md-6">							
-						<span><b>Data Lançamento: </b></span>
-						<span id="data_lanc_dados"></span>							
-					</div>
-
-
-				</div>
-
-
-
-
-				<div class="row" style="border-bottom: 1px solid #cac7c7;">
-					<div class="col-md-6">							
-						<span><b>Data Vencimento: </b></span>
-						<span id="data_venc_dados"></span>							
-					</div>
-
-					<div class="col-md-6">							
-						<span><b>Data PGTO: </b></span>
-						<span id="data_pgto_dados"></span>							
-					</div>
-
-
-				</div>
-
-
-
-				<div class="row" style="border-bottom: 1px solid #cac7c7;">
-					<div class="col-md-6">							
-						<span><b>Usuário Lanc: </b></span>
-						<span id="usuario_lanc_dados"></span>							
-					</div>
-
-					<div class="col-md-6">							
-						<span><b>Usuário Baixa: </b></span>
-						<span id="usuario_baixa_dados"></span>							
-					</div>
-
-
-				</div>
-
-				<div class="row" style="border-bottom: 1px solid #cac7c7;">
-					
-					<div class="col-md-6">							
-						<span><b>Cliente: </b></span>
-						<span id="pessoa_dados"></span>							
-					</div>
-
-						<div class="col-md-6">							
-						<span><b>Telefone: </b></span>
-						<span id="telefone_dados"></span>							
-					</div>
-
-				</div>
-
-
-
-
-				<div class="row">
-					<div class="col-md-12" align="center">	
-						<a id="link_mostrar" target="_blank" title="Clique para abrir o arquivo!">	
-							<img width="250px" id="target_mostrar">
-						</a>	
-					</div>					
-				</div>
-
-
-			</div>
-
-			
-		</div>
-	</div>
-</div>
-
-
-
 
 
 <script type="text/javascript">var pag = "<?=$pag?>"</script>
+
 <script src="js/ajax.js"></script>
 
 
 <script type="text/javascript">
-	$(document).ready(function() {
-		calcular()
+    $(document).ready(function() {
+        // Inicializa a listagem com a data de hoje
+        listar();
 
-		$('.sel2').select2({
-			dropdownParent: $('#modalForm')
-		});
-	});
-</script>
+        // Inicializa o plugin Select2 nos modais
+        $('.sel2').select2({
+            dropdownParent: $('#modalForm')
+        });
 
-
-<script type="text/javascript">
-	function carregarImg() {
-		var target = document.getElementById('target');
-		var file = document.querySelector("#foto").files[0];
-
-
-		var arquivo = file['name'];
-		resultado = arquivo.split(".", 2);
-
-		if(resultado[1] === 'pdf'){
-			$('#target').attr('src', "img/pdf.png");
-			return;
-		}
-
-		if(resultado[1] === 'rar' || resultado[1] === 'zip'){
-			$('#target').attr('src', "img/rar.png");
-			return;
-		}
-
-
-
-		var reader = new FileReader();
-
-		reader.onloadend = function () {
-			target.src = reader.result;
-		};
-
-		if (file) {
-			reader.readAsDataURL(file);
-
-		} else {
-			target.src = "";
-		}
-	}
-</script>
-
-
-
-<script type="text/javascript">
-	function valorData(dataInicio, dataFinal){
-	 $('#data-inicial-caixa').val(dataInicio);
-	 $('#data-final-caixa').val(dataFinal);	
-	listar();
-}
-</script>
-
-
-
-<script type="text/javascript">
-	$('#data-inicial-caixa').change(function(){
-			//$('#tipo-busca').val('');
-			listar();
-		});
-
-		$('#data-final-caixa').change(function(){						
-			//$('#tipo-busca').val('');
-			listar();
-		});	
-</script>
-
-
-
-
-
-<script type="text/javascript">
-	function listar(){
-
-	var dataInicial = $('#data-inicial-caixa').val();
-	var dataFinal = $('#data-final-caixa').val();	
-	var status = $('#buscar-contas').val();	
-	
-    $.ajax({
-        url: 'paginas/' + pag + "/listar.php",
-        method: 'POST',
-        data: {dataInicial, dataFinal, status},
-        dataType: "html",
-
-        success:function(result){
-            $("#listar").html(result);
-            $('#mensagem-excluir').text('');
-        }
+        // Adiciona gatilhos para os filtros de data
+        $('#data-inicial-caixa, #data-final-caixa').on('change', function(){
+            listar();
+        });
     });
-}
-</script>
 
+    // Função para preencher as datas e chamar a listagem
+    function valorData(dataInicio, dataFinal){
+        $('#data-inicial-caixa').val(dataInicio);
+        $('#data-final-caixa').val(dataFinal); 
+        listar();
+    }
 
+    // Função para filtrar por status (pago/pendente/todos)
+    function buscarContas(status){
+        $('#buscar-contas').val(status);
+        listar();
+    }
 
-<script type="text/javascript">
-	function buscarContas(status){
-	 $('#buscar-contas').val(status);
-	 listar();
-	}
-</script>
+    // Função principal para listar os dados via AJAX
+    function listar(){
+        // Mostra um loader enquanto carrega
+        $('#listar').html('Carregando...');
 
+        $.ajax({
+            url: 'paginas/' + pag + "/listar.php",
+            method: 'POST',
+            data: {
+                dataInicial: $('#data-inicial-caixa').val(),
+                dataFinal: $('#data-final-caixa').val(),
+                status: $('#buscar-contas').val()
+            },
+            dataType: "html",
+            success:function(result){
+                $("#listar").html(result);
+            },
+            error: function(){
+                $("#listar").html('<div class="text-danger text-center">Erro ao carregar dados.</div>');
+            }
+        });
+    }
 
+    // Função para tratar o envio do formulário do modal
+    // Esta função provavelmente está no seu arquivo js/ajax.js,
+    // se não estiver, você pode descomentar e usar esta versão melhorada.
+    /*
+    $('#form').submit(function(event){
+        event.preventDefault();
+        $('#btn-salvar').prop('disabled', true).text('Salvando...');
 
+        var formData = new FormData(this);
 
-<script type="text/javascript">
-	function baixar(id){
-    $.ajax({
-        url: 'paginas/' + pag + "/baixar.php",
-        method: 'POST',
-        data: {id},
-        dataType: "text",
-
-        success: function (mensagem) {            
-            if (mensagem.trim() == "Baixado com Sucesso") {                
-                listar();                
-            } else {
-                    $('#mensagem-excluir').addClass('text-danger')
-                    $('#mensagem-excluir').text(mensagem)
+        $.ajax({
+            url: 'paginas/' + pag + "/salvar.php",
+            method: 'POST',
+            data: formData,
+            success: function(response){
+                if(response.trim() === 'Salvo com Sucesso'){
+                    $('#btn-fechar').click();
+                    listar();
+                } else {
+                    $('#mensagem').addClass('text-danger').text(response);
                 }
-
-        },      
-
+            },
+            cache: false,
+            contentType: false,
+            processData: false,
+            complete: function(){
+                 $('#btn-salvar').prop('disabled', false).text('Salvar');
+            }
+        });
     });
-}
-
-</script>
-
-
-<script type="text/javascript">
-	function calcular(){
-
-		var quant = $('#quantidade').val();
-		var produto = $('#produto').val();
-
-
-
-    $.ajax({
-        url: 'paginas/' + pag + "/calcular.php",
-        method: 'POST',
-        data: {produto, quant},
-        dataType: "text",
-
-        success: function (mensagem) {  
-
-           $('#valor').val(mensagem)
-        },      
-
-    });
-}
+    */
 </script>
