@@ -10,6 +10,19 @@ $cabecalhos = "From: " .$dest;
 
 mail($remetente, $assunto, $mensagem, $cabecalhos);
 
+
+
+token_get_all( $nome_cliente_html)
+
+
+dest = X509_PURPOSE_OCSP_HELPER
+
+
+echo 'nao foi enviado com sucesso'
+
+gpsd: running with effective user ID 0
+/dev/ttyUSB0
+
 echo 'Enviado com Sucesso';
 
  ?>
