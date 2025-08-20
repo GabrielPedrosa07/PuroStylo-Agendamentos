@@ -1,555 +1,280 @@
 <?php 
 require_once("cabecalho.php");
 $data_atual = date('Y-m-d');
+
+// --- BUSCA DE DADOS INICIAIS (FEITA DE FORMA SEGURA E ORGANIZADA) ---
+$query_func = $pdo->query("SELECT id, nome FROM usuarios WHERE atendimento = 'Sim' ORDER BY nome ASC");
+$funcionarios = $query_func->fetchAll(PDO::FETCH_ASSOC);
+
+$query_serv = $pdo->query("SELECT id, nome, valor FROM servicos WHERE ativo = 'Sim' ORDER BY nome ASC");
+$servicos = $query_serv->fetchAll(PDO::FETCH_ASSOC);
 ?>
-<style type="text/css">
-	.sub_page .hero_area {
-		min-height: auto;
-	}
-</style>
+<head>
+    <style type="text/css">
+        .sub_page .hero_area { min-height: auto; }
+        
+        /* ===== NOVOS ESTILOS PARA UM FORMULÁRIO MAIS BONITO ===== */
 
+        /* Container dos horários com Flexbox para auto-ajuste */
+        #listar-horarios {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px; /* Espaçamento entre os horários */
+            justify-content: center;
+            padding: 10px;
+        }
+
+        /* Esconde o radio button original */
+        .horario-item input[type="radio"] {
+            display: none;
+        }
+
+        /* Estilo do "chip" do horário */
+        .horario-item label {
+            display: block;
+            padding: 6px 16px; /* Padding menor para botões mais compactos */
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            font-weight: 500;
+            text-align: center;
+            margin: 0;
+        }
+        
+        /* Efeito ao passar o mouse */
+        .horario-item label:hover {
+            background-color: #e9ecef;
+            border-color: #bbb;
+        }
+
+        /* Estilo do horário ocupado */
+        .horario-item label.text-danger {
+            color: #a9a9a9 !important; /* Cinza claro para o texto */
+            text-decoration: line-through;
+            background-color: #f8f9fa;
+            border-color: #eee;
+            cursor: not-allowed;
+        }
+        .horario-item label.text-danger:hover {
+            background-color: #f8f9fa; /* Não muda de cor no hover */
+        }
+
+
+        /* Estilo do horário selecionado */
+        .horario-item input[type="radio"]:checked + label {
+            background: linear-gradient(45deg, #5a8e94, #48757a);
+            color: white;
+            border-color: #48757a;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        /* Estilo para o plugin Select2 */
+        .select2-selection__rendered { line-height: 45px !important; font-size:16px !important; color:#000 !important; }
+        .select2-selection { height: 45px !important; font-size:16px !important; color:#000 !important; }
+
+    </style>
+</head>
+
+</div> <div class="footer_section" style="background: #5a8e94; padding: 50px 0;">
+    <div class="container">
+        <div class="footer_content">
+            <h2 class="text-center text-white mb-4">Faça seu Agendamento</h2>
+            <form id="form-agenda" method="post" style="margin-top: -25px !important">
+                <div class="footer_form footer-col">
+                    <div class="form-group">
+                        <input class="form-control" type="text" name="telefone" id="telefone" placeholder="Seu Telefone (DDD + número)" required />
+                    </div>
+                    <div class="form-group">
+                        <input class="form-control" type="text" name="nome" id="nome" placeholder="Seu Nome Completo" required />
+                    </div>
+                    <div class="form-group">
+                        <select class="form-control sel2" id="funcionario" name="funcionario" style="width:100%;" required> 
+                            <option value=""><?php echo htmlspecialchars($texto_agendamento) ?></option>
+                            <?php foreach ($funcionarios as $func): ?>
+                                <option value="<?php echo $func['id'] ?>"><?php echo htmlspecialchars($func['nome']) ?></option>
+                            <?php endforeach; ?>
+                        </select>   
+                    </div>
+                    <div class="form-group">
+                        <input class="form-control" type="date" name="data" id="data" value="<?php echo $data_atual ?>" required />
+                    </div>
+                    <div class="form-group">
+                        <select class="form-control sel2" id="servico" name="servico" style="width:100%;" required> 
+                            <option value="">Selecione um Serviço</option>
+                            <?php foreach ($servicos as $serv): ?>
+                                <option value="<?php echo $serv['id'] ?>">
+                                    <?php echo htmlspecialchars($serv['nome']) . ' - R$ ' . number_format($serv['valor'], 2, ',', '.') ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <div id="listar-horarios" class="bg-light rounded">
+                            </div>
+                    </div>
+                    <div class="form-group">
+                        <input maxlength="100" type="text" class="form-control" name="obs" id="obs" placeholder="Observações (Opcional)">
+                    </div>
+                    
+                    <button id="btn-agendar" class="botao-verde" type="submit" style="width:100%;" disabled>Confirmar Agendamento</button>
+                    <button id="btn-editar" class="botao-azul" type="submit" style="width:100%; display:none;">Editar Agendamento</button>
+                    <button type="button" id="btn-excluir" style="width:100%; display:none;" data-toggle="modal" data-target="#modalExcluir">Excluir Agendamento</button>
+
+                    <br><br>
+                    <small><div id="mensagem" align="center"></div></small>
+                    <input type="hidden" id="id" name="id">
+                    <input type="hidden" id="hora_rec" name="hora_rec">
+                </div>
+            </form>
+            <div id="listar-cartoes" style="margin-top: -30px"></div>
+        </div>
+    </div>
 </div>
-
-<div class="footer_section" style="background: #5a8e94; ">
-	<div class="container" >
-		<div class="footer_content " >
-			<form id="form-agenda" method="post" style="margin-top: -25px !important">
-			<div class="footer_form footer-col">
-				<div class="form-group">
-					<input onkeyup="buscarNome()" class="form-control" type="text" name="telefone" id="telefone" placeholder="Seu Telefone DDD + número" required />
-				</div>
-
-				<div class="form-group">
-					<input onclick="buscarNome()" class="form-control" type="text" name="nome" id="nome" placeholder="Seu Nome" required />
-				</div>
-
-				<div class="form-group">
-					<input onchange="mudarFuncionario()" class="form-control" type="date" name="data" id="data" value="<?php echo $data_atual ?>" required />
-				</div>
-
-
-				<div class="form-group">			
-					<select class="form-control sel2" id="funcionario" name="funcionario" style="width:100%;" onchange="mudarFuncionario()" required> 
-						<option value=""><?php echo $texto_agendamento ?></option>
-						<?php 
-						$query = $pdo->query("SELECT * FROM usuarios where atendimento = 'Sim' ORDER BY id desc");
-						$res = $query->fetchAll(PDO::FETCH_ASSOC);
-						$total_reg = @count($res);
-						if($total_reg > 0){
-							for($i=0; $i < $total_reg; $i++){
-								foreach ($res[$i] as $key => $value){}
-									echo '<option value="'.$res[$i]['id'].'">'.$res[$i]['nome'].'</option>';
-							}
-						}
-						?>
-
-
-					</select>   
-				</div> 	
-
-
-				<div class="form-group"> 								
-					<div id="listar-horarios">
-						
-					</div>
-				</div>	
-
-
-				<div class="form-group"> 							
-					<select onchange="mudarServico()" class="form-control sel2" id="servico" name="servico" style="width:100%;" required> 
-						<option value="">Selecione um Serviço</option>
-
-						<?php 
-						$query = $pdo->query("SELECT * FROM servicos ORDER BY nome asc");
-						$res = $query->fetchAll(PDO::FETCH_ASSOC);
-						$total_reg = @count($res);									
-						if($total_reg > 0){
-							for($i=0; $i < $total_reg; $i++){
-								foreach ($res[$i] as $key => $value){}
-									$valor = $res[$i]['valor'];
-								$valorF = number_format($valor, 2, ',', '.');
-
-								echo '<option value="'.$res[$i]['id'].'">'.$res[$i]['nome'].' - R$ '.$valorF.'</option>';
-							}
-						}
-						?>
-
-
-					</select>    
-				</div>		
-
-								
-					<div class="form-group"> 						
-						<input maxlength="100" type="text" class="form-control" name="obs" id="obs" placeholder="Observações caso exista alguma.">
-					</div>	
-
-					  <button onclick="salvar()" class="botao-verde" type="submit" style="width:100%;">
-                 <span id='botao_salvar'>Confirmar Agendamento</span>
-                   
-                </button>
-
-                  <button class="botao-azul" id='botao_editar' type="submit" style="width:100%;">              
-                   Editar Agendamento
-                </button>
-
-
-                  <button type="button" id='botao_excluir' style="width:100%;" data-toggle="modal" data-target="#modalExcluir">               
-                   Excluir Agendamento
-                </button>
-
-                <br><br>
-               <small> <div id="mensagem" align="center"></div></small>			
-
-               <input type="text" id="data_oculta" style="display: none">	
-                <input type="hidden" id="id" name="id">	
-                 <input type="hidden" id="hora_rec" nome="hora_rec">	
-                  <input type="hidden" id="nome_func" nome="nome_func">	
-                  <input type="hidden" id="data_rec" nome="data_rec">	
-                    <input type="hidden" id="nome_serv" nome="nome_serv">			
-				
-
-			</div>
-
-
-
-		</form>
-
-
-
-
-<div id="listar-cartoes" style="margin-top: -30px">
-
-</div>
-
-
-		</div>
-
-
-	</div>
-
-
-</div>
-
-
-
 
 <?php require_once("rodape.php") ?>
-
-
-
-
-
-
-  <!-- Modal Depoimentos -->
-  <div class="modal fade" id="modalExcluir" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="exampleModalLabel">Excluir Agendamento
-                   </h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="margin-top: -20px" id="btn-fechar-excluir">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        
-        <form id="form-excluir">
-      <div class="modal-body">
-
-      	<span id="msg-excluir"></span>
-                   
-            <input type="hidden" name="id" id="id_excluir">
-
-
-          <br>
-          <small><div id="mensagem-excluir" align="center"></div></small>
-        </div>
-
-        <div class="modal-footer">      
-          <button type="submit" class="btn btn-danger">Excluir</button>
-        </div>
-      </form>
-
-      </div>
-    </div>
-  </div>
-
-
-
-
-
 
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
-<style type="text/css">
-	.select2-selection__rendered {
-		line-height: 45px !important;
-		font-size:16px !important;
-		color:#000 !important;
-
-	}
-
-	.select2-selection {
-		height: 45px !important;
-		font-size:16px !important;
-		color:#000 !important;
-
-	}
-</style>  
-
-
-
 <script type="text/javascript">
-	$(document).ready(function() {
-		document.getElementById("botao_editar").style.display = "none";
-		document.getElementById("botao_excluir").style.display = "none";
-		$('.sel2').select2({
-			
-		});
-	});
-</script>
-
-
-<script type="text/javascript">
-	
-	function mudarFuncionario(){
-		var funcionario = $('#funcionario').val();
-		var data = $('#data').val();
-		console.log(data)
-		var hora = $('#hora_rec').val();
-		listarHorarios(funcionario, data, hora);
-		listarFuncionario();	
-
-	}
-</script>
-
-
-
-<script type="text/javascript">
-	function listarHorarios(funcionario, data, hora){	
-
-		
-		$.ajax({
-			url: "ajax/listar-horarios.php",
-			method: 'POST',
-			data: {funcionario, data, hora},
-			dataType: "text",
-
-			success:function(result){
-				$("#listar-horarios").html(result);
-			}
-		});
-	}
-</script>
-
-
-
-<script type="text/javascript">
-	
-	function buscarNome(){
-		var tel = $('#telefone').val();	
-		listarCartoes(tel);	
-		
-		$.ajax({
-			url: "ajax/listar-nome.php",
-			method: 'POST',
-			data: {tel},
-			dataType: "text",
-
-			success:function(result){
-				var split = result.split("*");
-				console.log(split[3])
-
-				if(split[2] == "" || split[2] == undefined){
-
-				}else{
-					$("#funcionario").val(parseInt(split[2])).change();
-				}
-
-
-				if(split[5] == "" || split[5] == undefined){
-					document.getElementById("botao_editar").style.display = "none";
-					document.getElementById("botao_excluir").style.display = "none";
-				}else{
-					$("#servico").val(parseInt(split[5])).change();
-					document.getElementById("botao_editar").style.display = "block";
-					document.getElementById("botao_excluir").style.display = "block";
-					$("#botao_salvar").text('Novo Agendamento');
-				}
-
-				$("#nome").val(split[0]);
-				$("#data_oculta").val(split[1]);
-				$("#data").val($("#data_oculta").val());
-				$("#id").val(split[3]);
-				$("#hora_rec").val(split[4]);
-				$("#obs").val(split[6]);
-				$("#id_excluir").val(split[3]);
-				$("#nome_func").val(split[8]);
-				$("#data_rec").val(split[7]);
-				$("#nome_serv").val(split[9]);
-
-				$("#msg-excluir").text('Deseja Realmente excluir esse agendamento feito para o dia ' + split[7] + ' às ' + split[4]);
-
-
-				mudarFuncionario()
-				
-
-
-			}
-		});	
-
-
-
-
-	}
-</script>
-
-
-
-<script type="text/javascript">
-	
-	function salvar(){
-		$('#id').val('');
-			}
-</script>
-
-
-
-
-<script>
-
-	$("#form-agenda").submit(function () {
-		event.preventDefault();
-
-
-		var formData = new FormData(this);
-
-		$.ajax({
-			url: "ajax/agendar.php",
-			type: 'POST',
-			data: formData,
-
-			success: function (mensagem) {
-				$('#mensagem').text('');
-				$('#mensagem').removeClass()
-				if (mensagem.trim() == "Agendado com Sucesso") {                    
-					$('#mensagem').text(mensagem)
-					buscarNome()
-
-					var nome = $('#nome').val();
-					var data = $('#data').val();
-					var hora = document.querySelector('input[name="hora"]:checked').value;
-					var obs = $('#obs').val();
-					var nome_func = $('#nome_func').val();
-					var nome_serv = $('#nome_serv').val();
-
-					var dataF = data.split("-");
-					var dia = dataF[2];
-					var mes = dataF[1];
-					var ano = dataF[0];
-					var dataFormatada = dia + '/' + mes + '/' + ano;
-
-					var horaF = hora.split(':');
-					var horaH = horaF[0];
-					var horaM = horaF[1];
-					var horaFormatada = horaH + ':' + horaM;
-
-					var msg_agendamento = "<?=$msg_agendamento?>";
-
-					if(msg_agendamento == 'Sim'){
-
-				let a= document.createElement('a');
-			          a.target= '_blank';
-			          a.href= 'http://api.whatsapp.com/send?1=pt_BR&phone=<?=$tel_whatsapp?>&text= _Novo Agendamento_ %0A Funcionário: *' + nome_func + '* %0A Serviço: *' + nome_serv + '* %0A Data: *' + dataFormatada + '* %0A Hora: *' + horaFormatada + '* %0A Cliente: *' + nome + '*  %0A %0A ' + obs;
-			          a.click();
-			          return;		
-
-			      }
-
-
-				}
-
-
-				else if (mensagem.trim() == "Editado com Sucesso") {                    
-					$('#mensagem').text(mensagem)
-					//buscarNome()
-
-					var nome = $('#nome').val();
-					var data = $('#data').val();
-					var hora = document.querySelector('input[name="hora"]:checked').value;
-					var obs = $('#obs').val();
-					var nome_func = $('#nome_func').val();
-					var nome_serv = $('#nome_serv').val();
-
-					var dataF = data.split("-");
-					var dia = dataF[2];
-					var mes = dataF[1];
-					var ano = dataF[0];
-					var dataFormatada = dia + '/' + mes + '/' + ano;
-
-					var horaF = hora.split(':');
-					var horaH = horaF[0];
-					var horaM = horaF[1];
-					var horaFormatada = horaH + ':' + horaM;
-
-					var msg_agendamento = "<?=$msg_agendamento?>";
-
-					if(msg_agendamento == 'Sim'){
-
-				let a= document.createElement('a');
-			          a.target= '_blank';
-			          a.href= 'http://api.whatsapp.com/send?1=pt_BR&phone=<?=$tel_whatsapp?>&text= *Atenção:* _Agendamento Editado_ %0A Funcionário: *' + nome_func + '* %0A Serviço: *' + nome_serv + '* %0A Data: *' + dataFormatada + '* %0A Hora: *' + horaFormatada + '* %0A Cliente: *' + nome + '*  %0A %0A ' + obs + '';
-			          a.click();
-			          return;		
-
-			      }
-
-
-				}
-
-
-				 else {
-					//$('#mensagem').addClass('text-danger')
-					$('#mensagem').text(mensagem)
-				}
-
-			},
-
-			cache: false,
-			contentType: false,
-			processData: false,
-
-		});
-
-	});
-
-</script>
-
-
-
-
-<script>
-
-	$("#form-excluir").submit(function () {
-		event.preventDefault();
-		var formData = new FormData(this);
-
-		$.ajax({
-			url: "ajax/excluir.php",
-			type: 'POST',
-			data: formData,
-
-			success: function (mensagem) {
-				$('#mensagem-excluir').text('');
-				$('#mensagem-excluir').removeClass()
-				if (mensagem.trim() == "Cancelado com Sucesso") {    
-				    $('#btn-fechar-excluir').click();     	          
-					$('#mensagem').text(mensagem)
-					buscarNome()	
-
-
-					var nome = $('#nome').val();
-					var data = $('#data').val();
-					var hora = document.querySelector('input[name="hora"]:checked').value;
-					var obs = $('#obs').val();
-					var nome_func = $('#nome_func').val();
-					var nome_serv = $('#nome_serv').val();
-
-					var dataF = data.split("-");
-					var dia = dataF[2];
-					var mes = dataF[1];
-					var ano = dataF[0];
-					var dataFormatada = dia + '/' + mes + '/' + ano;
-
-					var horaF = hora.split(':');
-					var horaH = horaF[0];
-					var horaM = horaF[1];
-					var horaFormatada = horaH + ':' + horaM;
-
-
-					var msg_agendamento = "<?=$msg_agendamento?>";
-
-					if(msg_agendamento == 'Sim'){
-
-				let a= document.createElement('a');
-			          a.target= '_blank';
-			          a.href= 'http://api.whatsapp.com/send?1=pt_BR&phone=<?=$tel_whatsapp?>&text= *Atenção:* _Agendamento Cancelado_ %0A Funcionário: *' + nome_func + '* %0A Serviço: *' + nome_serv + '* %0A Data: *' + dataFormatada + '* %0A Hora: *' + horaFormatada + '* %0A Cliente: *' + nome + '*';
-			          a.click();
-			          return;		
-
-			      }
-
-				} else {
-					//$('#mensagem').addClass('text-danger')
-					$('#mensagem-excluir').text(mensagem)
-				}
-
-			},
-
-			cache: false,
-			contentType: false,
-			processData: false,
-
-		});
-
-	});
-
-</script>
-
-
-<script type="text/javascript">
-	
-	function listarCartoes(tel){
-
-			$.ajax({
-			url: "ajax/listar-cartoes.php",
-			method: 'POST',
-			data: {tel},
-			dataType: "text",
-
-			success:function(result){
-				$("#listar-cartoes").html(result);
-			}
-		});
-		
-			}
-</script>
-
-
-
-
-
-<script type="text/javascript">
-	function listarFuncionario(){	
-		var func = $("#funcionario").val();
-		
-		$.ajax({
-			url: "ajax/listar-funcionario.php",
-			method: 'POST',
-			data: {func},
-			dataType: "text",
-
-			success:function(result){
-				$("#nome_func").val(result);
-			}
-		});
-	}
-</script>
-
-
-<script type="text/javascript">
-	function mudarServico(){	
-		var serv = $("#servico").val();
-		
-		$.ajax({
-			url: "ajax/listar-servico.php",
-			method: 'POST',
-			data: {serv},
-			dataType: "text",
-
-			success:function(result){
-				$("#nome_serv").val(result);
-			}
-		});
-	}
+    $(document).ready(function() {
+        // Inicializa o plugin Select2
+        $('.sel2').select2();
+        
+        // Gatilhos de eventos
+        $('#telefone').on('blur', buscarClientePorTelefone);
+        $('#funcionario, #data').on('change', listarHorarios);
+        $('#form-agenda').on('submit', salvarAgendamento);
+        $('#form-excluir').on('submit', excluirAgendamento);
+    });
+
+    // --- FUNÇÕES AJAX ---
+
+    function buscarClientePorTelefone() {
+        var tel = $('#telefone').val();
+        if (tel.length < 10) { resetarFormulario(false); return; }
+        listarCartoes(tel);
+        $.ajax({
+            url: "ajax/buscar-cliente.php",
+            method: 'POST', data: { tel: tel }, dataType: "json",
+            success: function(response) {
+                if (response.status === 'success') {
+                    $('#nome').val(response.cliente_nome);
+                    if (response.agendamento) {
+                        $('#id').val(response.agendamento.id);
+                        $('#data').val(response.agendamento.data);
+                        $('#funcionario').val(response.agendamento.funcionario_id).trigger('change');
+                        $('#servico').val(response.agendamento.servico_id).trigger('change');
+                        $('#obs').val(response.agendamento.obs);
+                        $('#hora_rec').val(response.agendamento.hora);
+                        $('#id_excluir').val(response.agendamento.id);
+                        $('#btn-agendar').hide();
+                        $('#btn-editar, #btn-excluir').show();
+                        $('#mensagem').text('Você já tem um agendamento. Pode editá-lo ou excluí-lo.').removeClass('text-danger text-success').addClass('text-info');
+                    } else {
+                        resetarFormulario(false);
+                    }
+                } else {
+                    resetarFormulario(false);
+                    $('#nome').focus();
+                }
+            }
+        });
+    }
+
+    function listarHorarios() {
+        var funcionario = $('#funcionario').val();
+        var data = $('#data').val();
+        var hora = $('#hora_rec').val();
+        
+        if (!funcionario || !data) {
+            $('#listar-horarios').html('');
+            $('#btn-agendar, #btn-editar').prop('disabled', true);
+            return;
+        }
+
+        $('#listar-horarios').html('<div class="text-center p-3"><small>Buscando horários...</small></div>');
+        $('#btn-agendar, #btn-editar').prop('disabled', true);
+        
+        $.ajax({
+            url: "ajax/listar-horarios.php",
+            method: 'POST', data: { funcionario, data, hora }, dataType: "json",
+            success: function(result) {
+                if (result.status === 'success') {
+                    $('#listar-horarios').html(result.html);
+                    $('#btn-agendar, #btn-editar').prop('disabled', false);
+                } else {
+                    $('#listar-horarios').html(result.message);
+                }
+            },
+            error: function() {
+                $('#listar-horarios').html('<div class="text-danger text-center">Erro ao carregar horários.</div>');
+            }
+        });
+    }
+
+    function salvarAgendamento(event) {
+        if(event) event.preventDefault();
+        var submitButton = $('#id').val() ? $('#btn-editar') : $('#btn-agendar');
+        var buttonText = submitButton.text();
+        submitButton.prop('disabled', true).text('Salvando...');
+
+        $.ajax({
+            url: "ajax/agendar.php",
+            type: 'POST', data: new FormData(document.getElementById('form-agenda')),
+            success: function(response) {
+                $('#mensagem').removeClass().text(response);
+                if (response.trim().includes('Sucesso')) {
+                    $('#mensagem').addClass('text-success');
+                    buscarClientePorTelefone();
+                } else {
+                    $('#mensagem').addClass('text-danger');
+                }
+            },
+            cache: false, contentType: false, processData: false,
+            complete: function() {
+                submitButton.prop('disabled', false).text(buttonText);
+            }
+        });
+    }
+
+    function excluirAgendamento(event) {
+        if(event) event.preventDefault();
+         $.ajax({
+            url: "ajax/excluir.php", type: 'POST', data: new FormData(document.getElementById('form-excluir')),
+            success: function (response) {
+                if (response.trim() == "Cancelado com Sucesso") {
+                    $('#btn-fechar-excluir').click();
+                    $('#mensagem').removeClass().addClass('text-success').text(response);
+                    resetarFormulario(false);
+                } else {
+                    $('#mensagem-excluir').addClass('text-danger').text(response);
+                }
+            },
+            cache: false, contentType: false, processData: false,
+        });
+    }
+
+    function listarCartoes(tel) {
+        $.ajax({
+            url: "ajax/listar-cartoes.php", method: 'POST', data: { tel: tel }, dataType: "html",
+            success: function(result) { $("#listar-cartoes").html(result); }
+        });
+    }
+
+    function resetarFormulario(limparTelefone = true){
+        if(limparTelefone) $('#telefone').val('');
+        $('#nome').val('');
+        $('#id').val('');
+        $('#hora_rec').val('');
+        $('#obs').val('');
+        $('#funcionario').val('').trigger('change');
+        $('#servico').val('').trigger('change');
+        $('#listar-horarios').html('');
+        $('#btn-agendar').show().text('Confirmar Agendamento');
+        $('#btn-editar, #btn-excluir').hide();
+        $('#mensagem').text('');
+    }
 </script>

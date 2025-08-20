@@ -9,9 +9,9 @@
   <!-- Mobile Metas -->
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
   <!-- Site Metas -->
-  <meta name="keywords" content="barbearia freitas, salão de beleza" />
+  <meta name="keywords" content="Puro Stylo, salão de beleza" />
   <meta name="description" content="Fazemos todo tipo de serviço ..." />
-  <meta name="author" content="Barbearia" />
+  <meta name="author" content="Puro Stylo" />
   <link rel="shortcut icon" href="images/<?php echo $icone_site ?>" type="image/x-icon">
 
   <title><?php echo $nome_sistema ?></title>
