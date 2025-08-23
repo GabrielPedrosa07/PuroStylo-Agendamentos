@@ -20,32 +20,243 @@ $clientes = $query_cli->fetchAll(PDO::FETCH_ASSOC);
 $query_serv = $pdo->query("SELECT id, nome FROM servicos ORDER BY nome ASC");
 $servicos = $query_serv->fetchAll(PDO::FETCH_ASSOC);
 ?>
-
 <head>
     <style>
-        .horarios-container { max-height: 200px; overflow-y: auto; padding: 5px; }
-        .horario-item input[type="radio"] { display: none; }
-        .horario-item label { display: block; padding: 8px 12px; background-color: #f0f0f0; border: 1px solid #ddd; border-radius: 25px; cursor: pointer; transition: all 0.2s ease-in-out; font-weight: 500; text-align: center; }
-        .horario-item label.text-danger { color: #dc3545 !important; text-decoration: line-through; background-color: #f8d7da; border-color: #f5c6cb; cursor: not-allowed; }
-        .horario-item input[type="radio"]:checked + label { background-color: #0d6efd; color: white; border-color: #0d6efd; }
+        /* ===== ESTILO PARA A NOVA SELEÇÃO DE FUNCIONÁRIOS COM FOTOS ===== */
+        .selecao-funcionarios {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            padding: 5px 0 15px 0;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .funcionario-card {
+            cursor: pointer;
+            text-align: center;
+        }
+        .funcionario-card input[type="radio"] {
+            display: none;
+        }
+        .funcionario-card img {
+            width: 65px;
+            height: 65px;
+            border-radius: 50%;
+            border: 3px solid #e9ecef;
+            object-fit: cover;
+            transition: all 0.2s ease-in-out;
+        }
+        .funcionario-card span {
+            display: block;
+            margin-top: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #555;
+        }
+        .funcionario-card input[type="radio"]:checked + label img {
+            border-color: #0d6efd;
+            transform: scale(1.1);
+        }
+        .funcionario-card input[type="radio"]:checked + label span {
+            color: #0d6efd;
+            font-weight: 600;
+        }
+
+        /* ===== NOVO VISUAL PARA HORÁRIOS DISPONÍVEIS (BOTÕES EM GRADE) ===== */
+/* ===== CSS CORRIGIDO PARA OS HORÁRIOS (USANDO FLEXBOX) ===== */
+#listar-horarios {
+    display: flex;             /* MUDANÇA 1: Usando flexbox */
+    flex-wrap: wrap;           /* Permite que os itens quebrem para a próxima linha */
+    gap: 10px;                 /* Espaçamento entre os botões */
+    justify-content: flex-start; /* Alinha os itens à esquerda */
+    padding: 10px;
+    border-radius: 8px;
+}
+
+/* Garante que o wrapper de cada botão não interfira no layout flex */
+#listar-horarios .form-check {
+    flex-basis: 85px; /* Define uma largura base para cada botão */
+    flex-grow: 1;     /* Permite que os botões cresçam para preencher espaços vazios */
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+#listar-horarios input[type="radio"] {
+    display: none;
+}
+
+#listar-horarios label {
+    display: block;
+    width: 100%;
+    padding: 10px 5px;
+    background-color: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    font-weight: 600;
+    color: #495057;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    text-align: center;
+}
+
+#listar-horarios label:hover {
+    border-color: #0d6efd;
+    color: #0d6efd;
+    transform: translateY(-1px);
+}
+
+#listar-horarios input[type="radio"]:checked + label {
+    background-color: #0d6efd;
+    color: white;
+    border-color: #0d6efd;
+    box-shadow: 0 3px 7px rgba(13, 110, 253, 0.3);
+    transform: translateY(-2px);
+}
+
+#listar-horarios label.text-danger {
+    color: #adb5bd !important;
+    background-color: #f0f0f0;
+    border-color: #f0f0f0;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
+        /* ===== NOVO VISUAL PARA OS CARDS DE AGENDAMENTOS DO DIA ===== */
+        .appointment-card {
+            background-color: #fff;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            border-left-width: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+            transition: box-shadow 0.2s ease;
+        }
+        .appointment-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        .status-agendado {
+            border-left-color: #0d6efd; 
+        }
+        .status-concluido {
+            border-left-color: #198754;
+        }
+        .appointment-card .card-body {
+            padding: 0.8rem 1rem;
+        }
+        .appointment-card .time-block {
+            margin-right: 15px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        .appointment-card .time-block .time {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #343a40;
+        }
+        .appointment-card .details-block h6 {
+            font-weight: 600;
+            margin-bottom: 0;
+        }
+        .appointment-card .details-block small {
+            font-size: 0.85rem;
+        }
+        .appointment-card .action-menu a {
+            text-decoration: none;
+            color: #6c757d;
+        }
+        .dropdown-menu .dropdown-item {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* ===== NOVO VISUAL PARA OS CARDS DE AGENDAMENTO ===== */
+.agenda-card {
+    background-color: #fff;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+    border-left-width: 5px; /* Borda de status mais grossa */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    transition: all 0.2s ease-in-out;
+    margin-bottom: 12px !important; /* Garante o espaçamento */
+}
+.agenda-card:hover {
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+/* Cores da borda para cada status */
+.status-agendado {
+    border-left-color: #0d6efd; /* Azul */
+}
+.status-concluido {
+    border-left-color: #198754; /* Verde */
+}
+.agenda-card .card-body {
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.agenda-card .info-principal {
+    display: flex;
+    align-items: center;
+    gap: 15px; /* Espaço entre a hora e os detalhes */
+}
+.agenda-card .hora {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #343a40;
+    text-align: center;
+}
+.agenda-card .status-badge {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 50px;
+}
+.agenda-card .detalhes span {
+    display: block; /* Cada informação em uma linha */
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+.agenda-card .detalhes strong {
+    color: #212529;
+    font-size: 1.1rem;
+}
+.agenda-card .detalhes .fa {
+    margin-right: 8px;
+    width: 15px; /* Alinha os ícones */
+    text-align: center;
+}
+.agenda-card .menu-acoes a {
+    text-decoration: none;
+    color: #6c757d;
+}
     </style>
 </head>
-
 <div class="row">
     <div class="col-md-3">
         <button style="margin-bottom:10px" onclick="inserir()" type="button" class="btn btn-primary btn-flat btn-pri"><i class="fa fa-plus" aria-hidden="true"></i> Novo Agendamento</button>
     </div>
 
-    <div class="col-md-3">
-        <div class="form-group">            
-            <select class="form-control sel2" id="funcionario" name="funcionario" style="width:100%;" onchange="mudarFuncionario()"> 
-                <option value="">Selecione um Funcionário</option>
-                <?php foreach ($funcionarios as $func): ?>
-                    <option value="<?php echo $func['id'] ?>"><?php echo htmlspecialchars($func['nome']) ?></option>
-                <?php endforeach; ?>
-            </select>   
-        </div>  
+<div class="col-md-12">
+    <div class="selecao-funcionarios">
+        <?php 
+        // Consulta para buscar funcionários com FOTO
+        $query_func_fotos = $pdo->query("SELECT id, nome, foto FROM usuarios WHERE atendimento = 'Sim' ORDER BY nome ASC");
+        $funcionarios_fotos = $query_func_fotos->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($funcionarios_fotos as $func): ?>
+            <div class="funcionario-card">
+                <input type="radio" name="funcionario_radio" onchange="mudarFuncionario()" id="func_<?php echo $func['id'] ?>" value="<?php echo $func['id'] ?>">
+                <label for="func_<?php echo $func['id'] ?>">
+                    <img src="img/perfil/<?php echo $func['foto'] ?>" title="<?php echo htmlspecialchars($func['nome']) ?>">
+                    <span><?php echo htmlspecialchars(explode(' ', $func['nome'])[0]) ?></span>
+                </label>
+            </div>
+        <?php endforeach; ?>
     </div>
+</div>
 
 </div>
 <input type="hidden" name="data_agenda" id="data_agenda" value="<?php echo date('Y-m-d') ?>"> 
@@ -183,6 +394,45 @@ $servicos = $query_serv->fetchAll(PDO::FETCH_ASSOC);
     $(window).on('load', function() {
         $('#mycalendar').monthly({ mode: 'event' });
     });
+
+    // COLE ESTAS DUAS FUNÇÕES NO SEU JAVASCRIPT NO FINAL DA PÁGINA agendamentos.php
+
+function excluir(id, hora){
+    if(confirm("Deseja realmente excluir este agendamento das " + hora + "?")){
+        $.ajax({
+            url: 'paginas/agendamentos/excluir.php', // Verifique se o caminho está correto
+            method: 'POST',
+            data: {id: id},
+            dataType: "text",
+            success: function (mensagem) {
+                if (mensagem.trim() == "Excluído com Sucesso") {
+                    listar(); // Recarrega a lista de agendamentos
+                } else {
+                    // Exibe qualquer outra mensagem de erro que o PHP retornar
+                    alert(mensagem);
+                }
+            },
+            error: function(){
+                alert("Ocorreu um erro de comunicação ao tentar excluir.");
+            }
+        });
+    }
+}
+
+function fecharServico(id_agd, cliente, servico, valor_serv, funcionario, nome_serv){
+    // Preenche os dados no modal de "Finalizar Serviço"
+    $('#id_agd').val(id_agd);
+    $('#cliente_agd').val(cliente);
+    $('#servico_agd').val(servico);
+    $('#valor_serv_agd').val(valor_serv);
+    $('#funcionario_agd').val(funcionario).trigger('change'); // o .trigger('change') é para o plugin select2
+    $('#titulo_servico').text(nome_serv);
+    $('#descricao_serv_agd').val(nome_serv);
+    
+    // Abre o modal
+    $('#modalServico').modal('show');
+    $('#mensagem-servico').text(''); // Limpa mensagens de erro antigas
+}
 </script>
 <script type="text/javascript">
     $(document).ready(function() {
@@ -195,19 +445,29 @@ $servicos = $query_serv->fetchAll(PDO::FETCH_ASSOC);
     });
 
     // --- FUNÇÕES GLOBAIS DA PÁGINA ---
+// VERSÃO NOVA E CORRIGIDA
+function inserir(){
+    // 1. Pega o ID do funcionário que foi selecionado na tela principal
+    // Ele busca o radio button com o nome 'funcionario_radio' que está 'checked' (marcado)
+    var funcionarioId = $('input[name="funcionario_radio"]:checked').val();
 
-    function inserir(){
-        var funcionario = $('#funcionario').val();
-        if (funcionario === "") {
-            alert('Selecione um Funcionário antes de agendar!');
-            return;
-        }
-        $('#mensagem').text('');
-        $('#titulo_inserir').text('Inserir Registro');
-        limparCampos();
-        $('#modalForm').modal('show');
-        listarHorarios();
+    // 2. Verifica se um funcionário foi realmente selecionado
+    if (!funcionarioId) {
+        alert('Por favor, selecione um Profissional clicando na foto antes de agendar!');
+        return; // Para a execução da função aqui
     }
+
+    // 3. Coloca o ID do funcionário no campo escondido DENTRO do formulário do modal
+    // Este é o passo crucial que estava faltando!
+    $('#id_funcionario').val(funcionarioId);
+
+    // 4. Agora, o resto do seu código original para abrir o modal
+    $('#mensagem').text('');
+    $('#titulo_inserir').text('Inserir Registro');
+    limparCampos(); // Sua função para limpar os campos
+    $('#modalForm').modal('show');
+    listarHorarios(); // Chama a função para buscar os horários já com o funcionário correto
+}
 
     function limparCampos(){
         $('#id').val('');     
@@ -218,13 +478,9 @@ $servicos = $query_serv->fetchAll(PDO::FETCH_ASSOC);
     }
     
     // Função-chave que é chamada ao mudar o funcionário no select principal
-    function mudarFuncionario() {
-        var funcionario = $('#funcionario').val();
-        // Guarda o ID do funcionário selecionado no input hidden do formulário do modal
-        $('#id_funcionario').val(funcionario);           
-        listar(); // Atualiza a lista de agendamentos do dia
-    }
-    
+function mudarFuncionario(){
+    listar();   // Apenas atualiza a lista de agendamentos
+}
     // Gatilho para quando a data no modal de agendamento é alterada
     $('#data-modal').on('change', function(){
         listarHorarios();
@@ -266,7 +522,7 @@ $servicos = $query_serv->fetchAll(PDO::FETCH_ASSOC);
     // --- FUNÇÕES AJAX PRINCIPAIS ---
 
     function listar(){
-        var funcionario = $('#funcionario').val();
+        var funcionario = $('input[name="funcionario_radio"]:checked').val();
         var data = $("#data_agenda").val(); 
         $("#data-modal").val(data);
 
@@ -286,43 +542,52 @@ $servicos = $query_serv->fetchAll(PDO::FETCH_ASSOC);
         });
     }
 
-    function listarHorarios(){
-        var funcionario = $('#funcionario').val();
-        if (funcionario === "") {
-            $("#listar-horarios").html('<small class="text-muted">Selecione um Funcionário na tela principal.</small>');
-            $('#btn-salvar').prop('disabled', true);
-            return;
-        }
-        
-        var data = $('#data-modal').val(); 
-        var id_agd = $('#id').val();
-        var hora_agd = $('#form-agendamento').data('hora-salva') || ''; 
+// COLE ESTA FUNÇÃO CORRIGIDA NO LUGAR DA ANTIGA
+function listarHorarios() {
+    var funcionario = $('input[name="funcionario_radio"]:checked').val();
 
-        $('#listar-horarios').html('<div class="text-center p-3"><small>Carregando...</small></div>');
+    // Se estiver usando a versão com o <select> em vez das fotos, use esta linha:
+    // var funcionario = $('#funcionario').val();
+
+    if (!funcionario) {
+        $("#listar-horarios").html('<small class="text-muted">Selecione um Profissional.</small>');
         $('#btn-salvar').prop('disabled', true);
-        
-        $.ajax({
-            url: `paginas/${pag}/listar-horarios.php`,
-            method: 'POST',
-            data: { funcionario, data, id: id_agd, hora: hora_agd },
-            dataType: "json", // A CORREÇÃO PRINCIPAL!
-
-            success: function(result) {
-                if(result.status === 'success'){
-                    $("#listar-horarios").html(result.html);
-                    $('#btn-salvar').prop('disabled', false);
-                } else {
-                    $("#listar-horarios").html(result.message);
-                    $('#btn-salvar').prop('disabled', true);
-                }
-            },
-            error: function(){
-                 $("#listar-horarios").html('<div class="text-danger text-center">Erro ao carregar horários.</div>');
-                 $('#btn-salvar').prop('disabled', true);
-            }
-        });
+        return;
     }
 
+    var data = $('#data-modal').val();
+    var id_agd = $('#id').val();
+    var hora_agd = $('#form-agendamento').data('hora-salva') || '';
+
+    // ===== LINHA CORRIGIDA AQUI (TEXTO EM VEZ DE GIF) =====
+    $('#listar-horarios').html('<div class="text-center p-3"><small>Carregando...</small></div>');
+    $('#btn-salvar').prop('disabled', true);
+
+    $.ajax({
+        url: `paginas/${pag}/listar-horarios.php`,
+        method: 'POST',
+        data: {
+            funcionario,
+            data,
+            id: id_agd,
+            hora: hora_agd
+        },
+        dataType: "json",
+        success: function(result) {
+            if (result.status === 'success') {
+                $("#listar-horarios").html(result.html);
+                $('#btn-salvar').prop('disabled', false);
+            } else {
+                $("#listar-horarios").html(result.message);
+                $('#btn-salvar').prop('disabled', true);
+            }
+        },
+        error: function() {
+            $("#listar-horarios").html('<div class="text-danger text-center">Erro ao carregar horários.</div>');
+            $('#btn-salvar').prop('disabled', true);
+        }
+    });
+}
     // --- SUBMISSÃO DOS FORMULÁRIOS ---
 
     // Este formulário é para o modal de NOVO AGENDAMENTO (`#modalForm`)

@@ -1,5 +1,5 @@
 <?php
-require_once("../../../conexao.php");
+require_once("../sistema/conexao.php");
 
 // --- Recebendo e validando os dados do formulário ---
 $telefone = $_POST['telefone'];
