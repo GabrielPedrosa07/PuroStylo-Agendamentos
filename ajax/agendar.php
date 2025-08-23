@@ -1,7 +1,7 @@
 <?php
 require_once("../sistema/conexao.php");
 
-// --- Recebendo e validando os dados do formulário ---
+// --- 1. RECEBENDO E VALIDANDO OS DADOS DO FORMULÁRIO ---
 $telefone = $_POST['telefone'];
 $nome = $_POST['nome'];
 $funcionario = $_POST['funcionario'];
@@ -20,12 +20,40 @@ if (empty($nome) || empty($telefone) || empty($funcionario) || empty($servico)) 
     exit();
 }
 
+$limite_diario = 5; // Defina o limite que você quer aqui!
 
-// Inicia uma transação. Ou tudo funciona, ou nada é salvo.
+// Inicia o bloco principal de execução
 try {
+    
+    // --- 2. NOVA VERIFICAÇÃO DE LIMITE DE AGENDAMENTOS ---
+    // (só executa se for um novo agendamento, não uma edição)
+    if (empty($id)) {
+        // Busca o ID do cliente pelo telefone fornecido
+        $query_cliente_check = $pdo->prepare("SELECT id FROM clientes WHERE telefone = :telefone");
+        $query_cliente_check->bindValue(':telefone', $telefone);
+        $query_cliente_check->execute();
+        $cliente_dados = $query_cliente_check->fetch(PDO::FETCH_ASSOC);
+
+        if ($cliente_dados) {
+            $id_cliente_check = $cliente_dados['id'];
+
+            // Conta quantos agendamentos esse cliente já tem para o dia
+            $query_limite = $pdo->prepare("SELECT COUNT(id) as total_hoje FROM agendamentos WHERE cliente = :cliente AND data = :data");
+            $query_limite->execute([':cliente' => $id_cliente_check, ':data' => $data]);
+            $resultado = $query_limite->fetch(PDO::FETCH_ASSOC);
+            $agendamentos_feitos = $resultado['total_hoje'] ?? 0;
+
+            if ($agendamentos_feitos >= $limite_diario) {
+                // Lança uma exceção em vez de 'echo' para ser capturada pelo 'catch'
+                throw new Exception('Você já atingiu o limite de ' . $limite_diario . ' agendamentos para este dia. Por favor, entre em contato.');
+            }
+        }
+    }
+
+    // --- Inicia a transação APÓS as verificações iniciais ---
     $pdo->beginTransaction();
 
-    // --- 1. VERIFICA SE O HORÁRIO JÁ ESTÁ OCUPADO (DE FORMA SEGURA) ---
+    // --- 3. VERIFICA SE O HORÁRIO JÁ ESTÁ OCUPADO ---
     $sql_disponibilidade = "SELECT id FROM agendamentos WHERE data = :data AND hora = :hora AND funcionario = :funcionario";
     $params_disponibilidade = [
         ':data' => $data,
@@ -45,18 +73,15 @@ try {
         throw new Exception('Este horário não está disponível!');
     }
 
-    // --- 2. VERIFICA SE O CLIENTE EXISTE OU CADASTRA UM NOVO (DE FORMA SEGURA) ---
+    // --- 4. VERIFICA SE O CLIENTE EXISTE OU CADASTRA UM NOVO ---
     $query_cliente = $pdo->prepare("SELECT id FROM clientes WHERE telefone = :telefone");
     $query_cliente->bindValue(':telefone', $telefone);
     $query_cliente->execute();
     $cliente_existente = $query_cliente->fetch(PDO::FETCH_ASSOC);
 
-    $id_cliente = 0;
     if ($cliente_existente) {
-        // Cliente já existe, pega o ID
         $id_cliente = $cliente_existente['id'];
     } else {
-        // Cliente não existe, cadastra e pega o novo ID
         $query_insert_cli = $pdo->prepare("INSERT INTO clientes SET nome = :nome, telefone = :telefone, data_cad = curDate(), cartoes = '0', alertado = 'Não'");
         $query_insert_cli->bindValue(":nome", $nome);
         $query_insert_cli->bindValue(":telefone", $telefone);
@@ -64,8 +89,7 @@ try {
         $id_cliente = $pdo->lastInsertId();
     }
 
-
-    // --- 3. INSERE OU ATUALIZA O AGENDAMENTO (DE FORMA SEGURA) ---
+    // --- 5. INSERE OU ATUALIZA O AGENDAMENTO ---
     $params_agendamento = [
         ':func' => $funcionario,
         ':cli' => $id_cliente,
@@ -76,11 +100,9 @@ try {
     ];
 
     if (empty($id)) {
-        // --- CADASTRAR NOVO AGENDAMENTO ---
         $sql = "INSERT INTO agendamentos SET funcionario = :func, cliente = :cli, hora = :hora, data = :data, usuario = '0', status = 'Agendado', obs = :obs, data_lanc = curDate(), servico = :serv";
         $mensagem_sucesso = 'Agendado com Sucesso';
     } else {
-        // --- EDITAR AGENDAMENTO EXISTENTE ---
         $sql = "UPDATE agendamentos SET funcionario = :func, cliente = :cli, hora = :hora, data = :data, obs = :obs, servico = :serv WHERE id = :id";
         $params_agendamento[':id'] = $id;
         $mensagem_sucesso = 'Editado com Sucesso';
@@ -89,19 +111,19 @@ try {
     $query_agendamento = $pdo->prepare($sql);
     $query_agendamento->execute($params_agendamento);
 
-    // Se tudo deu certo até aqui, confirma as alterações no banco de dados
+    // Se tudo deu certo, confirma as alterações no banco de dados
     $pdo->commit();
     echo $mensagem_sucesso;
 
 } catch (PDOException $e) {
     // Se ocorrer um erro no banco de dados, desfaz tudo
-    $pdo->rollBack();
-    error_log("Erro ao salvar agendamento: " . $e->getMessage()); // Loga o erro real para o admin
+    if ($pdo->inTransaction()) { $pdo->rollBack(); }
+    error_log("Erro ao salvar agendamento: " . $e->getMessage());
     echo 'Falha ao salvar no banco de dados. Por favor, tente novamente.';
 
 } catch (Exception $e) {
-    // Captura outras exceções (como "Horário indisponível")
+    // Captura outras exceções (como "Horário indisponível" ou "Limite atingido")
+    if ($pdo->inTransaction()) { $pdo->rollBack(); }
     echo $e->getMessage();
 }
-
 ?>
