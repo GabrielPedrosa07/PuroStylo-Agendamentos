@@ -648,6 +648,7 @@ pre code {
   -ms-flex: 0 0 25%;
   flex: 0 0 25%;
   max-width: 25%;
+  padding: 5px;
 }
 
 .col-4 {
@@ -8026,7 +8027,7 @@ button.bg-dark:focus {
 
 .mb-4,
 .my-4 {
-  margin-bottom: 1.5rem !important;
+  margin-bottom: 3rem !important;
 }
 
 .ml-4,
