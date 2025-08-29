@@ -73,7 +73,32 @@ $servicos = $query_serv->fetchAll(PDO::FETCH_ASSOC);
         /* Estilo para o plugin Select2 */
         .select2-selection__rendered { line-height: 45px !important; font-size:16px !important; color:#000 !important; }
         .select2-selection { height: 45px !important; font-size:16px !important; color:#000 !important; }
-
+        .sub_page .hero_area { min-height: auto; }
+        
+        /* ===== NOVO VISUAL PARA SELEÇÃO DE FUNCIONÁRIO COM FOTOS ===== */
+        .selecao-funcionario-container { margin-bottom: 20px; }
+        .selecao-funcionario-container .label-titulo {
+            font-weight: 600; color: #333; margin-bottom: 10px; display: block;
+        }
+        .selecao-funcionario {
+            display: flex; gap: 15px; overflow-x: auto; padding-bottom: 15px;
+        }
+        .funcionario-card input[type="radio"] { display: none; }
+        .funcionario-card-content {
+            display: flex; flex-direction: column; align-items: center;
+            gap: 8px; padding: 10px; border: 2px solid #e9ecef;
+            border-radius: 10px; transition: all 0.3s ease;
+            width: 110px; cursor: pointer; background: #fff;
+        }
+        .funcionario-card img {
+            width: 70px; height: 70px; border-radius: 50%; object-fit: cover;
+        }
+        .funcionario-card span { font-size: 14px; font-weight: 500; color: #555; text-align: center; }
+        .funcionario-card input[type="radio"]:checked + .funcionario-card-content {
+            border-color: #5a8e94; background-color: #f0f7f8; transform: translateY(-5px);
+        }
+        
+        /* (o resto do seu CSS para horários e select2 continua o mesmo) */
     </style>
 </head>
 
@@ -89,14 +114,27 @@ $servicos = $query_serv->fetchAll(PDO::FETCH_ASSOC);
                     <div class="form-group">
                         <input class="form-control" type="text" name="nome" id="nome" placeholder="Seu Nome Completo" required />
                     </div>
-                    <div class="form-group">
-                        <select class="form-control sel2" id="funcionario" name="funcionario" style="width:100%;" required> 
-                            <option value=""><?php echo htmlspecialchars($texto_agendamento) ?></option>
-                            <?php foreach ($funcionarios as $func): ?>
-                                <option value="<?php echo $func['id'] ?>"><?php echo htmlspecialchars($func['nome']) ?></option>
-                            <?php endforeach; ?>
-                        </select>   
-                    </div>
+<div class="selecao-funcionario-container">
+    <label class="label-titulo"><?php echo htmlspecialchars($texto_agendamento) ?></label>
+    <div class="selecao-funcionario">
+        <?php 
+        // A consulta no topo do arquivo precisa buscar a foto também.
+        // Garanta que a consulta seja: SELECT id, nome, foto FROM usuarios...
+        $query_func_fotos = $pdo->query("SELECT id, nome, foto FROM usuarios WHERE atendimento = 'Sim' ORDER BY nome ASC");
+        $funcionarios_fotos = $query_func_fotos->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($funcionarios_fotos as $func): 
+        ?>
+            <label class="funcionario-card">
+                <input type="radio" name="funcionario" value="<?php echo $func['id'] ?>" required>
+                <div class="funcionario-card-content">
+                    <img src="sistema/painel/img/perfil/<?php echo $func['foto'] ?>" alt="<?php echo htmlspecialchars($func['nome']) ?>">
+                    <span><?php echo htmlspecialchars(explode(' ', $func['nome'])[0]) ?></span>
+                </div>
+            </label>
+        <?php endforeach; ?>
+    </div>
+</div>
                     <div class="form-group">
                         <input class="form-control" type="date" name="data" id="data" value="<?php echo $data_atual ?>" required />
                     </div>
@@ -145,7 +183,11 @@ $servicos = $query_serv->fetchAll(PDO::FETCH_ASSOC);
         
         // Gatilhos de eventos
         $('#telefone').on('blur', buscarClientePorTelefone);
-        $('#funcionario, #data').on('change', listarHorarios);
+// O gatilho para os novos botões de rádio
+$('input[name="funcionario"]').on('change', listarHorarios); 
+
+// O gatilho para a data continua o mesmo
+$('#data').on('change', listarHorarios);
         $('#form-agenda').on('submit', salvarAgendamento);
         $('#form-excluir').on('submit', excluirAgendamento);
     });
@@ -185,8 +227,7 @@ $servicos = $query_serv->fetchAll(PDO::FETCH_ASSOC);
     }
 
     function listarHorarios() {
-        var funcionario = $('#funcionario').val();
-        var data = $('#data').val();
+var funcionario = $('input[name="funcionario"]:checked').val();        var data = $('#data').val();
         var hora = $('#hora_rec').val();
         
         if (!funcionario || !data) {
