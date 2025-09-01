@@ -447,17 +447,21 @@ function mudarFuncionario(){
         }
     }
 
-    function fecharServico(id_agd, cliente, servico, valor_serv, funcionario, nome_serv){
-        $('#id_agd').val(id_agd);
-        $('#cliente_agd').val(cliente);
-        $('#servico_agd').val(servico);
-        $('#valor_serv_agd').val(valor_serv);
-        $('#funcionario_agd').val(funcionario).trigger('change');
-        $('#titulo_servico').text(nome_serv);
-        $('#descricao_serv_agd').val(nome_serv);
-        $('#modalServico').modal('show');
-        $('#mensagem-servico').text('');
-    }
+// FUNÇÃO NOVA E CORRIGIDA (COLE ESTA NO LUGAR DA ANTIGA)
+function fecharServico(dados) { // Recebe um único objeto 'dados'
+    // Agora acessamos as propriedades do objeto: dados.id, dados.cliente, etc.
+    $('#id_agd').val(dados.id);
+    $('#cliente_agd').val(dados.cliente);
+    $('#servico_agd').val(dados.servico);
+    $('#valor_serv_agd').val(dados.valor);
+    $('#funcionario_agd').val(dados.funcionario).trigger('change');
+    $('#titulo_servico').text(dados.nome_serv);
+    $('#descricao_serv_agd').val(dados.nome_serv);
+
+    // Abre o modal
+    $('#modalServico').modal('show');
+    $('#mensagem-servico').text(''); // Limpa mensagens de erro antigas
+}
 
     // --- FUNÇÕES AJAX PRINCIPAIS ---
 
