@@ -55,6 +55,8 @@ for($i=0; $i < $total_reg; $i++){
   $nome = $res[$i]['nome'];   
   $valor = $res[$i]['valor'];
   $foto = $res[$i]['foto'];
+  // ADICIONE ESTA LINHA
+$descricao = $res[$i]['descricao'];
    $valorF = number_format($valor, 2, ',', '.');
    $nomeF = mb_strimwidth($nome, 0, 20, "...");
 
