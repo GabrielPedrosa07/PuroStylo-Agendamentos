@@ -70,16 +70,19 @@ if(@$_FILES['foto']['name'] != ""){
 
 
 
+$usuario = $_POST['usuario'];
+
 if($id == ""){
-	$query = $pdo->prepare("INSERT INTO $tabela SET nome = :nome, categoria = '$categoria', valor_compra = :valor_compra, valor_venda = :valor_venda, descricao = :descricao, foto = '$foto', nivel_estoque = '$nivel_estoque'");
+	$query = $pdo->prepare("INSERT INTO $tabela SET nome = :nome, categoria = '$categoria', valor_compra = :valor_compra, valor_venda = :valor_venda, descricao = :descricao, foto = '$foto', nivel_estoque = '$nivel_estoque', usuario = :usuario");
 }else{
-	$query = $pdo->prepare("UPDATE $tabela SET nome = :nome, categoria = '$categoria', valor_compra = :valor_compra, valor_venda = :valor_venda, descricao = :descricao, foto = '$foto', nivel_estoque = '$nivel_estoque' WHERE id = '$id'");
+	$query = $pdo->prepare("UPDATE $tabela SET nome = :nome, categoria = '$categoria', valor_compra = :valor_compra, valor_venda = :valor_venda, descricao = :descricao, foto = '$foto', nivel_estoque = '$nivel_estoque', usuario = :usuario WHERE id = '$id'");
 }
 
 $query->bindValue(":nome", "$nome");
 $query->bindValue(":valor_venda", "$valor_venda");
 $query->bindValue(":valor_compra", "$valor_compra");
 $query->bindValue(":descricao", "$descricao");
+$query->bindValue(":usuario", "$usuario");
 $query->execute();
 
 echo 'Salvo com Sucesso';

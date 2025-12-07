@@ -113,6 +113,23 @@ if(@$produtos == 'ocultar'){
 							</div> 	
 						</div>	
 
+						<div class="col-md-4">
+							<div class="form-group">
+								<label for="exampleInputEmail1">Profissional</label>
+								<select class="form-control sel2" id="usuario" name="usuario" style="width:100%;" > 
+									<option value="0">Selecionar Profissional</option>
+									<?php 
+									$query = $pdo->query("SELECT * FROM usuarios ORDER BY nome asc");
+									$res = $query->fetchAll(PDO::FETCH_ASSOC);
+									for($i=0; $i < @count($res); $i++){
+										foreach ($res[$i] as $key => $value){}
+										echo '<option value="'.$res[$i]['id'].'">'.$res[$i]['nome'].'</option>';
+									}
+									?>
+								</select>   
+							</div> 	
+						</div>
+
 						
 
 					</div>

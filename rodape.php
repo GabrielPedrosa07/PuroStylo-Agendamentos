@@ -63,6 +63,37 @@
   </footer>
   <!-- footer section -->
 
+  <a href="http://api.whatsapp.com/send?1=pt_BR&phone=<?php echo $tel_whatsapp ?>" class="whatsapp-float" target="_blank">
+      <i class="fa fa-whatsapp"></i>
+  </a>
+
+  <!-- Floating Cart Button -->
+  <a href="#" class="cart-float" data-toggle="modal" data-target="#modalCart" onclick="renderCart()">
+      <i class="fa fa-shopping-cart"></i>
+      <span id="cart-count">0</span>
+  </a>
+
+  <!-- Cart Modal -->
+  <div class="modal fade" id="modalCart" tabindex="-1" role="dialog" aria-labelledby="cartModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="cartModalLabel">Seu Carrinho</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body" id="cart-body">
+           <!-- Cart Items Grouped by Professional will appear here -->
+           <p class="text-center">Seu carrinho está vazio.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- jQery -->
   <script src="js/jquery-3.4.1.min.js"></script>
   <!-- popper js -->
@@ -73,6 +104,8 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
   <!-- custom js -->
   <script src="js/custom.js"></script>
+  <!-- Cart Logic -->
+  <script src="js/cart.js"></script>
   <!-- Google Map -->
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCh39n5U-4IoWpsVGUHWdqB6puEkhRLdmI&callback=myMap"></script>
   <!-- End Google Map -->
