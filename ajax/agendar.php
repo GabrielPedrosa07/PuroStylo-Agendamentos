@@ -113,7 +113,26 @@ try {
 
     // Se tudo deu certo, confirma as alterações no banco de dados
     $pdo->commit();
-    echo $mensagem_sucesso;
+    
+    // Busca telefone do funcionário
+    $query_tel_func = $pdo->query("SELECT telefone FROM usuarios WHERE id = '$funcionario'");
+    $res_tel = $query_tel_func->fetch(PDO::FETCH_ASSOC);
+    $tel_profissional = $res_tel['telefone'] ?? '';
+
+    // Busca nome do serviço
+    $query_nome_serv = $pdo->query("SELECT nome FROM servicos WHERE id = '$servico'");
+    $res_serv = $query_nome_serv->fetch(PDO::FETCH_ASSOC);
+    $nome_servico = $res_serv['nome'] ?? '';
+
+    // Formata a mensagem
+    $msg_whatsapp = "Olá, o cliente *$nome* acabou de agendar o serviço *$nome_servico* para o dia *" . date('d/m/Y', strtotime($data)) . "* às *$hora*.";
+
+    // Retorna JSON
+    echo json_encode([
+        'status' => 'success',
+        'message' => $mensagem_sucesso,
+        'whatsapp_link' => "http://api.whatsapp.com/send?1=pt_BR&phone=55$tel_profissional&text=" . urlencode($msg_whatsapp)
+    ]);
 
 } catch (PDOException $e) {
     // Se ocorrer um erro no banco de dados, desfaz tudo

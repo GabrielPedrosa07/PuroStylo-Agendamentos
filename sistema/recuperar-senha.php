@@ -1,7 +1,9 @@
+
 <?php 
 require_once("conexao.php");
 
 $email = $_POST['email'];
+
 
 $query = $pdo->query("SELECT * from usuarios where email = '$email'");
 $res = $query->fetchAll(PDO::FETCH_ASSOC);

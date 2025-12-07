@@ -84,8 +84,9 @@ try {
             }
 
             $html_content .= '
-                <div class="horario-item col-3"> <input class="form-check-input" type="radio" name="hora" id="hora-'.$horaF.'" value="'.htmlspecialchars($hora_atual_loop).'" '.$hora_desabilitada.' '.$checado.' required>
-                    <label class="form-check-label '.$texto_hora.'" for="hora-'.$horaF.'">
+                <div class="horario-item"> 
+                    <input type="radio" name="hora" id="hora-'.$horaF.'" value="'.htmlspecialchars($hora_atual_loop).'" '.$hora_desabilitada.' '.$checado.' required style="display:none">
+                    <label class="'.$texto_hora.'" for="hora-'.$horaF.'">
                         '.$horaF.'
                     </label>
                 </div>';

@@ -194,10 +194,102 @@ for($i=0; $i < $total_reg; $i++){
 
   <!-- about section ends -->
 
+ <!-- professionals section -->
+  <section class="professionals_section layout_padding">
+    <div class="container">
+      <div class="heading_container heading_center">
+        <h2>
+          Nossas Cabeleireiras
+        </h2>
+        <p>
+          Conheça nossa equipe de profissionais qualificados.
+        </p>
+      </div>
+      <div class="row">
+        <?php 
+        $query = $pdo->query("SELECT * FROM usuarios WHERE atendimento = 'Sim' AND ativo = 'Sim'");
+        $res = $query->fetchAll(PDO::FETCH_ASSOC);
+        $total_reg = @count($res);
+        if($total_reg > 0){
+          for($i=0; $i < $total_reg; $i++){
+            foreach ($res[$i] as $key => $value){}
+            $id = $res[$i]['id'];
+            $nome = $res[$i]['nome'];
+            $foto = $res[$i]['foto'];
+         ?>
+        <div class="col-md-4">
+          <div class="box">
+            <div class="img-box" align="center">
+              <img src="sistema/painel/img/perfil/<?php echo $foto ?>" alt="<?php echo $nome ?>" style="width: 200px; height: 200px; object-fit: cover; border-radius: 50%; margin-bottom: 15px;">
+            </div>
+            <div class="detail-box" align="center">
+              <h5>
+                <?php echo $nome ?>
+              </h5>
+              <a href="profissional.php?id=<?php echo $id ?>" class="btn btn-primary" style="margin-top: 10px;">
+                Conhecer
+              </a>
+            </div>
+          </div>
+        </div>
+        <?php 
+          }
+        }
+        ?>
+      </div>
+    </div>
+  </section>
+  <!-- professionals section ends -->
+
+  <!-- space section -->
+  <section class="space_section layout_padding">
+    <div class="container">
+      <div class="heading_container heading_center">
+        <h2>
+          Nosso Espaço
+        </h2>
+        <p>
+          Conheça nosso ambiente preparado para você.
+        </p>
+      </div>
+      <div class="row">
+        <div class="col-sm-6 col-md-3">
+          <div class="box">
+            <div class="img-box">
+              <img src="images/espaco1.jpg" alt="Nosso Espaço 1" style="width: 100%; height: 200px; object-fit: cover; border-radius: 10px;">
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-6 col-md-3">
+          <div class="box">
+            <div class="img-box">
+              <img src="images/espaco2.jpg" alt="Nosso Espaço 2" style="width: 100%; height: 200px; object-fit: cover; border-radius: 10px;">
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-6 col-md-3">
+          <div class="box">
+            <div class="img-box">
+              <img src="images/espaco3.jpg" alt="Nosso Espaço 3" style="width: 100%; height: 200px; object-fit: cover; border-radius: 10px;">
+            </div>
+          </div>
+        </div>
+         <div class="col-sm-6 col-md-3">
+          <div class="box">
+            <div class="img-box">
+              <img src="images/espaco4.jpg" alt="Nosso Espaço 4" style="width: 100%; height: 200px; object-fit: cover; border-radius: 10px;">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- space section ends -->
+
   <!-- product section -->
 
   <?php 
-$query = $pdo->query("SELECT * FROM produtos where estoque > 0 and valor_venda >  0 ORDER BY id desc limit 8");
+$query = $pdo->query("SELECT p.*, u.telefone as tel_prof, u.nome as nome_prof FROM produtos p LEFT JOIN usuarios u ON p.usuario = u.id where p.estoque > 0 and p.valor_venda > 0 ORDER BY p.id desc limit 8");
 $res = $query->fetchAll(PDO::FETCH_ASSOC);
 $total_reg = @count($res);
 if($total_reg > 0){ 
@@ -222,6 +314,14 @@ for($i=0; $i < $total_reg; $i++){
   $valor = $res[$i]['valor_venda'];
   $foto = $res[$i]['foto'];
   $descricao = $res[$i]['descricao'];
+  $tel_prof = $res[$i]['tel_prof'];
+  $nome_prof = $res[$i]['nome_prof'];
+
+  if(empty($tel_prof)) {
+      $tel_prof = $tel_whatsapp;
+      $nome_prof = "Loja";
+  }
+
    $valorF = number_format($valor, 2, ',', '.');
  $nomeF = mb_strimwidth($nome, 0, 23, "...");
 
@@ -242,9 +342,20 @@ for($i=0; $i < $total_reg; $i++){
                 </span>
                
               </h6>
-              <a target="_blank" href="http://api.whatsapp.com/send?1=pt_BR&phone=<?php echo $tel_whatsapp ?>&text=Ola, gostaria de saber mais informações sobre o produto <?php echo $nome ?>">
-               Comprar Agora
+              
+              <a href="javascript:void(0)" class="btn-add-cart" 
+                 onclick="handleAddToCart(this, event)"
+                 data-id="<?php echo $id ?>" 
+                 data-name="<?php echo $nome ?>" 
+                 data-price="<?php echo $valor ?>"
+                 data-prof-tel="<?php echo $tel_prof ?>"
+                 data-prof-name="<?php echo $nome_prof ?>">
+               Adicionar ao Carrinho
               </a>
+
+            </div>
+          </div>
+        </div>
             </div>
           </div>
         </div>

@@ -13,154 +13,232 @@ $servicos = $query_serv->fetchAll(PDO::FETCH_ASSOC);
     <style type="text/css">
         .sub_page .hero_area { min-height: auto; }
         
-        /* ===== NOVOS ESTILOS PARA UM FORMULÁRIO MAIS BONITO ===== */
-
-        /* Container dos horários com Flexbox para auto-ajuste */
-        #listar-horarios {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px; /* Espaçamento entre os horários */
-            justify-content: center;
-            padding: 10px;
+        /* ===== ESTILOS GERAIS ===== */
+        body {
+            background-color: #f4f4f4;
+            color: #333;
+            font-family: 'Poppins', sans-serif;
         }
 
-        /* Esconde o radio button original */
-        .horario-item input[type="radio"] {
-            display: none;
+        /* ===== container PRINCIPAL ===== */
+        .scheduling_section {
+            background: #ffffff !important; /* Fundo branco total */
+            padding: 40px 0;
+            min-height: 80vh; /* Altura mínima */
+            display: block; 
         }
 
-        /* Estilo do "chip" do horário */
-        .horario-item label {
-            display: block;
-            padding: 6px 16px; /* Padding menor para botões mais compactos */
-            background-color: #fff;
-            border: 1px solid #ccc;
-            border-radius: 25px;
-            cursor: pointer;
-            transition: all 0.2s ease-in-out;
-            font-weight: 500;
+        .scheduling_form_content {
+            background: #fff;
+            padding: 20px;
+            width: 100%;
+            margin: 0 auto;
+            border: none !important; 
+            box-shadow: none !important; 
+        }
+
+        h2.titulo-agendamento {
             text-align: center;
-            margin: 0;
+            color: #222;
+            font-weight: 700;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* ===== FORMULÁRIO COM ANIMAÇÃO ===== */
+        .form-animate {
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-group input, .form-group select {
+            height: 50px !important;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            padding-left: 20px;
+            font-size: 15px;
+            transition: border-color 0.3s;
         }
         
-        /* Efeito ao passar o mouse */
-        .horario-item label:hover {
-            background-color: #e9ecef;
-            border-color: #bbb;
+        .form-group input:focus, .form-group select:focus {
+            border-color: #000; /* Foco preto */
+            box-shadow: none;
         }
 
-        /* Estilo do horário ocupado */
-        .horario-item label.text-danger {
-            color: #a9a9a9 !important; /* Cinza claro para o texto */
-            text-decoration: line-through;
-            background-color: #f8f9fa;
-            border-color: #eee;
-            cursor: not-allowed;
-        }
-        .horario-item label.text-danger:hover {
-            background-color: #f8f9fa; /* Não muda de cor no hover */
-        }
-
-
-        /* Estilo do horário selecionado */
-        .horario-item input[type="radio"]:checked + label {
-            background: linear-gradient(45deg, #5a8e94, #48757a);
-            color: white;
-            border-color: #48757a;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        /* Estilo para o plugin Select2 */
-        .select2-selection__rendered { line-height: 45px !important; font-size:16px !important; color:#000 !important; }
-        .select2-selection { height: 45px !important; font-size:16px !important; color:#000 !important; }
-        .sub_page .hero_area { min-height: auto; }
-        
-        /* ===== NOVO VISUAL PARA SELEÇÃO DE FUNCIONÁRIO COM FOTOS ===== */
-        .selecao-funcionario-container { margin-bottom: 20px; }
-        .selecao-funcionario-container .label-titulo {
-            font-weight: 600; color: #333; margin-bottom: 10px; display: block;
+        /* ===== SELEÇÃO DE FUNCIONÁRIO ===== */
+        .selecao-funcionario-container { margin-bottom: 25px; text-align: center; }
+        .label-titulo {
+            font-weight: 600; color: #555; margin-bottom: 15px; display: block; font-size: 1.1rem;
         }
         .selecao-funcionario {
-            display: flex; gap: 15px; overflow-x: auto; padding-bottom: 15px;
+            display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;
         }
+        .funcionario-card { position: relative; cursor: pointer; }
         .funcionario-card input[type="radio"] { display: none; }
         .funcionario-card-content {
             display: flex; flex-direction: column; align-items: center;
-            gap: 8px; padding: 10px; border: 2px solid #e9ecef;
-            border-radius: 10px; transition: all 0.3s ease;
-            width: 110px; cursor: pointer; background: #fff;
+            gap: 10px; padding: 10px; border: 2px solid transparent;
+            border-radius: 15px; transition: all 0.3s ease;
+            width: 100px;
         }
         .funcionario-card img {
-            width: 70px; height: 70px; border-radius: 50%; object-fit: cover;
+            width: 80px; height: 80px; border-radius: 50%; object-fit: cover;
+            border: 3px solid #eee; transition: all 0.3s;
         }
-        .funcionario-card span { font-size: 14px; font-weight: 500; color: #555; text-align: center; }
-        .funcionario-card input[type="radio"]:checked + .funcionario-card-content {
-            border-color: #5a8e94; background-color: #f0f7f8; transform: translateY(-5px);
-        }
+        .funcionario-card span { font-size: 14px; font-weight: 600; color: #555; }
         
-        /* (o resto do seu CSS para horários e select2 continua o mesmo) */
+        .funcionario-card input[type="radio"]:checked + .funcionario-card-content img {
+            border-color: #000; transform: scale(1.05);
+        }
+         .funcionario-card input[type="radio"]:checked + .funcionario-card-content span {
+            color: #000;
+        }
+
+        /* ===== HORÁRIOS ===== */
+        #listar-horarios {
+            display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;
+            padding: 15px; background: #fafafa; border-radius: 10px; border: 1px solid #eee;
+        }
+        .horario-item label {
+            padding: 8px 20px; background: #fff; border: 1px solid #ccc;
+            border-radius: 30px; cursor: pointer; transition: all 0.2s;
+            font-weight: 500; font-size: 14px; color: #333;
+        }
+        .horario-item label:hover { background: #eee; }
+        .horario-item input[type="radio"]:checked + label {
+            background: #000; color: #fff; border-color: #000; /* Preto */
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        .horario-item label.text-danger {
+            background: #f9f9f9; color: #ccc !important; border-color: #eee;
+            text-decoration: line-through; cursor: not-allowed;
+        }
+
+        /* ===== BOTÕES ===== */
+        .botao-preto {
+            background: #000; color: #fff; padding: 15px; font-weight: 600;
+            border: none; border-radius: 8px; transition: transform 0.2s, box-shadow 0.2s;
+            text-transform: uppercase; letter-spacing: 1px;
+        }
+        .botao-preto:hover {
+            background: #333; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            color: #fff;
+        }
+         .botao-azul { /* Estilo para editar (manter ou mudar par cinza) */
+             background: #333; color: #fff; border: none; padding: 15px; border-radius: 8px;
+         }
+
+        /* ===== MENSAGEM ===== */
+        #mensagem { font-weight: 600; font-size: 16px; margin-top: 15px; }
+
+        /* Select2 override */
+        .select2-container--default .select2-selection--single {
+            border: 1px solid #ddd !important; border-radius: 8px !important; height: 50px !important;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 50px !important; padding-left: 20px !important;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 48px !important;
+        }
+
     </style>
 </head>
 
-</div> <div class="footer_section" style="background: #5a8e94; padding: 50px 0;">
+</div> <div class="scheduling_section">
     <div class="container">
-        <div class="footer_content">
-            <h2 class="text-center text-white mb-4">Faça seu Agendamento</h2>
-            <form id="form-agenda" method="post" style="margin-top: -25px !important">
-                <div class="footer_form footer-col">
-                    <div class="form-group">
-                        <input class="form-control" type="text" name="telefone" id="telefone" placeholder="Seu Telefone (DDD + número)" required />
+        <!-- Conteúdo centralizado e estilizado -->
+        <div class="scheduling_form_content form-animate">
+            <h2 class="titulo-agendamento">Agende seu Horário</h2>
+            
+            <form id="form-agenda" method="post">
+                <div class="footer_form">
+                    
+                    <!-- Linha 1: Nome e Telefone -->
+                    <div class="row">
+                         <div class="col-md-6 form-group">
+                            <label>Seu Telefone</label>
+                            <input class="form-control" type="text" name="telefone" id="telefone" placeholder="(XX) XXXXX-XXXX" required />
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label>Seu Nome</label>
+                            <input class="form-control" type="text" name="nome" id="nome" placeholder="Nome Completo" required />
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <input class="form-control" type="text" name="nome" id="nome" placeholder="Seu Nome Completo" required />
-                    </div>
-<div class="selecao-funcionario-container">
-    <label class="label-titulo"><?php echo htmlspecialchars($texto_agendamento) ?></label>
-    <div class="selecao-funcionario">
-        <?php 
-        // A consulta no topo do arquivo precisa buscar a foto também.
-        // Garanta que a consulta seja: SELECT id, nome, foto FROM usuarios...
-        $query_func_fotos = $pdo->query("SELECT id, nome, foto FROM usuarios WHERE atendimento = 'Sim' ORDER BY nome ASC");
-        $funcionarios_fotos = $query_func_fotos->fetchAll(PDO::FETCH_ASSOC);
 
-        foreach ($funcionarios_fotos as $func): 
-        ?>
-            <label class="funcionario-card">
-                <input type="radio" name="funcionario" value="<?php echo $func['id'] ?>" required>
-                <div class="funcionario-card-content">
-                    <img src="sistema/painel/img/perfil/<?php echo $func['foto'] ?>" alt="<?php echo htmlspecialchars($func['nome']) ?>">
-                    <span><?php echo htmlspecialchars(explode(' ', $func['nome'])[0]) ?></span>
-                </div>
-            </label>
-        <?php endforeach; ?>
-    </div>
-</div>
-                    <div class="form-group">
-                        <input class="form-control" type="date" name="data" id="data" value="<?php echo $data_atual ?>" required />
-                    </div>
-                    <div class="form-group">
-                        <select class="form-control sel2" id="servico" name="servico" style="width:100%;" required> 
-                            <option value="">Selecione um Serviço</option>
-                            <?php foreach ($servicos as $serv): ?>
-                                <option value="<?php echo $serv['id'] ?>">
-                                    <?php echo htmlspecialchars($serv['nome']) . ' - R$ ' . number_format($serv['valor'], 2, ',', '.') ?>
-                                </option>
+                    <!-- Seleção de Funcionário com Fotos -->
+                    <div class="selecao-funcionario-container">
+                        <label class="label-titulo">Com quem você quer agendar?</label>
+                        <div class="selecao-funcionario">
+                            <?php 
+                            $query_func_fotos = $pdo->query("SELECT id, nome, foto FROM usuarios WHERE atendimento = 'Sim' ORDER BY nome ASC");
+                            $funcionarios_fotos = $query_func_fotos->fetchAll(PDO::FETCH_ASSOC);
+
+                            foreach ($funcionarios_fotos as $func): 
+                            ?>
+                                <label class="funcionario-card">
+                                    <input type="radio" name="funcionario" value="<?php echo $func['id'] ?>" required>
+                                    <div class="funcionario-card-content">
+                                        <img src="sistema/painel/img/perfil/<?php echo $func['foto'] ?>" alt="<?php echo htmlspecialchars($func['nome']) ?>">
+                                        <span><?php echo htmlspecialchars(explode(' ', $func['nome'])[0]) ?></span>
+                                    </div>
+                                </label>
                             <?php endforeach; ?>
-                        </select>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <div id="listar-horarios" class="bg-light rounded">
-                            </div>
+
+                    <!-- Linha 2: Data e Serviço -->
+                    <div class="row">
+                        <div class="col-md-6 form-group">
+                            <label>Data</label>
+                            <input class="form-control" type="date" name="data" id="data" value="<?php echo $data_atual ?>" required />
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label>Serviço</label>
+                            <select class="form-control sel2" id="servico" name="servico" style="width:100%;" required> 
+                                <option value="">Selecione...</option>
+                                <?php foreach ($servicos as $serv): ?>
+                                    <option value="<?php echo $serv['id'] ?>">
+                                        <?php echo htmlspecialchars($serv['nome']) . ' - R$ ' . number_format($serv['valor'], 2, ',', '.') ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
                     </div>
+
+                    <!-- Horários -->
+                     <div class="form-group">
+                        <label>Horários Disponíveis</label>
+                        <div id="listar-horarios">
+                            <small class="text-muted">Selecione uma data e um profissional para ver os horários.</small>
+                        </div>
+                    </div>
+
                     <div class="form-group">
                         <input maxlength="100" type="text" class="form-control" name="obs" id="obs" placeholder="Observações (Opcional)">
                     </div>
                     
-                    <button id="btn-agendar" class="botao-verde" type="submit" style="width:100%;" disabled>Confirmar Agendamento</button>
-                    <button id="btn-editar" class="botao-azul" type="submit" style="width:100%; display:none;">Editar Agendamento</button>
-                    <button type="button" id="btn-excluir" style="width:100%; display:none;" data-toggle="modal" data-target="#modalExcluir">Excluir Agendamento</button>
+                    <button id="btn-agendar" class="botao-preto" type="submit" style="width:100%;" disabled>Confirmar Agendamento</button>
+                    <button id="btn-editar" class="botao-azul" type="submit" style="width:100%; display:none;">Salvar Edição</button>
+                    <button type="button" id="btn-excluir" class="btn btn-danger mt-2" style="width:100%; display:none;" data-toggle="modal" data-target="#modalExcluir">Excluir Agendamento</button>
+                     
+                    <!-- Modal/Botão de Notificação (Oculto Inicialmente) -->
+                    <div id="area-notificacao" class="text-center mt-3" style="display:none;">
+                        <div class="alert alert-success">
+                            <i class="fa fa-check-circle"></i> Agendamento Realizado!
+                        </div>
+                        <a id="link-whatsapp" href="#" target="_blank" class="btn btn-success" style="width: 100%; font-weight: bold;">
+                            <i class="fa fa-whatsapp"></i> Avisar Cabeleireira
+                        </a>
+                        <small class="text-muted mt-2 d-block">Clique acima para enviar o comprovante via WhatsApp.</small>
+                    </div>
 
-                    <br><br>
+                    <br>
                     <small><div id="mensagem" align="center"></div></small>
                     <input type="hidden" id="id" name="id">
                     <input type="hidden" id="hora_rec" name="hora_rec">
@@ -175,19 +253,16 @@ $servicos = $query_serv->fetchAll(PDO::FETCH_ASSOC);
 
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.11/jquery.mask.min.js"></script>
 
 <script type="text/javascript">
     $(document).ready(function() {
-        // Inicializa o plugin Select2
-        $('.sel2').select2();
+        $('.sel2').select2({ width: '100%' });
+        $('#telefone').mask('(00) 00000-0000');
         
-        // Gatilhos de eventos
         $('#telefone').on('blur', buscarClientePorTelefone);
-// O gatilho para os novos botões de rádio
-$('input[name="funcionario"]').on('change', listarHorarios); 
-
-// O gatilho para a data continua o mesmo
-$('#data').on('change', listarHorarios);
+        $('input[name="funcionario"]').on('change', listarHorarios); 
+        $('#data').on('change', listarHorarios);
         $('#form-agenda').on('submit', salvarAgendamento);
         $('#form-excluir').on('submit', excluirAgendamento);
     });
@@ -196,7 +271,7 @@ $('#data').on('change', listarHorarios);
 
     function buscarClientePorTelefone() {
         var tel = $('#telefone').val();
-        if (tel.length < 10) { resetarFormulario(false); return; }
+        if (tel.length < 14) { resetarFormulario(false); return; } // Validação básica de tamanho
         listarCartoes(tel);
         $.ajax({
             url: "ajax/buscar-cliente.php",
@@ -207,36 +282,37 @@ $('#data').on('change', listarHorarios);
                     if (response.agendamento) {
                         $('#id').val(response.agendamento.id);
                         $('#data').val(response.agendamento.data);
-                        $('#funcionario').val(response.agendamento.funcionario_id).trigger('change');
+                        $('#funcionario').val(response.agendamento.funcionario_id).trigger('change'); // Radio buttons precisam ser verificado manualmente se value não funcionar
+                        $("input[name=funcionario][value=" + response.agendamento.funcionario_id + "]").prop('checked', true);
+                        
                         $('#servico').val(response.agendamento.servico_id).trigger('change');
                         $('#obs').val(response.agendamento.obs);
                         $('#hora_rec').val(response.agendamento.hora);
                         $('#id_excluir').val(response.agendamento.id);
+                        
                         $('#btn-agendar').hide();
                         $('#btn-editar, #btn-excluir').show();
-                        $('#mensagem').text('Você já tem um agendamento. Pode editá-lo ou excluí-lo.').removeClass('text-danger text-success').addClass('text-info');
+                        $('#mensagem').text('Você já tem um agendamento.').addClass('text-info');
+                        
+                        listarHorarios(); // Atualiza horários para mostrar o atual selecionado
                     } else {
-                        resetarFormulario(false);
+                        // Cliente existe mas sem agendamento futuro
+                         $('#btn-agendar').show();
+                         $('#btn-editar, #btn-excluir').hide();
                     }
-                } else {
-                    resetarFormulario(false);
-                    $('#nome').focus();
                 }
             }
         });
     }
 
     function listarHorarios() {
-var funcionario = $('input[name="funcionario"]:checked').val();        var data = $('#data').val();
+        var funcionario = $('input[name="funcionario"]:checked').val();
+         var data = $('#data').val();
         var hora = $('#hora_rec').val();
         
-        if (!funcionario || !data) {
-            $('#listar-horarios').html('');
-            $('#btn-agendar, #btn-editar').prop('disabled', true);
-            return;
-        }
+        if (!funcionario || !data) return;
 
-        $('#listar-horarios').html('<div class="text-center p-3"><small>Buscando horários...</small></div>');
+        $('#listar-horarios').html('<div class="text-center p-2"><i class="fa fa-spinner fa-spin"></i> Carregando...</div>');
         $('#btn-agendar, #btn-editar').prop('disabled', true);
         
         $.ajax({
@@ -249,9 +325,6 @@ var funcionario = $('input[name="funcionario"]:checked').val();        var data 
                 } else {
                     $('#listar-horarios').html(result.message);
                 }
-            },
-            error: function() {
-                $('#listar-horarios').html('<div class="text-danger text-center">Erro ao carregar horários.</div>');
             }
         });
     }
@@ -259,24 +332,39 @@ var funcionario = $('input[name="funcionario"]:checked').val();        var data 
     function salvarAgendamento(event) {
         if(event) event.preventDefault();
         var submitButton = $('#id').val() ? $('#btn-editar') : $('#btn-agendar');
-        var buttonText = submitButton.text();
-        submitButton.prop('disabled', true).text('Salvando...');
+        var originalText = submitButton.text();
+        submitButton.prop('disabled', true).text('Processando...');
 
         $.ajax({
             url: "ajax/agendar.php",
-            type: 'POST', data: new FormData(document.getElementById('form-agenda')),
-            success: function(response) {
-                $('#mensagem').removeClass().text(response);
-                if (response.trim().includes('Sucesso')) {
-                    $('#mensagem').addClass('text-success');
-                    buscarClientePorTelefone();
+            type: 'POST', data: new FormData(document.getElementById('form-agenda')), dataType: 'json', 
+            success: function(response) { // Agora espera JSON
+                $('#mensagem').removeClass().text('');
+                
+                if (response.status === 'success') {
+                    // Oculta botões e mostra área de notificação
+                    $('#btn-agendar, #btn-editar, #btn-excluir').hide();
+                    $('#area-notificacao').fadeIn();
+                    $('#link-whatsapp').attr('href', response.whatsapp_link);
+                    
+                    // Reset parcial ou total após tempo se desejar, mas aqui deixa o usuário ver
                 } else {
-                    $('#mensagem').addClass('text-danger');
+                    // Fallback para caso retorno venha texto puro de erro (ex: exceptions não tratadas como json)
+                     if(response.responseText) {
+                        $('#mensagem').addClass('text-danger').text(response.responseText);
+                     } else {
+                         // Se JSON vier com erro mas status != success (improvável com o código atual mas bom prevenir)
+                          $('#mensagem').addClass('text-danger').text(response.message || 'Erro desconhecido');
+                     }
                 }
+            },
+            error: function(xhr) {
+                 // Captura o texto de erro se o PHP der echo simples em caso de erro
+                 $('#mensagem').addClass('text-danger').text(xhr.responseText);
             },
             cache: false, contentType: false, processData: false,
             complete: function() {
-                submitButton.prop('disabled', false).text(buttonText);
+                submitButton.prop('disabled', false).text(originalText);
             }
         });
     }
@@ -288,10 +376,8 @@ var funcionario = $('input[name="funcionario"]:checked').val();        var data 
             success: function (response) {
                 if (response.trim() == "Cancelado com Sucesso") {
                     $('#btn-fechar-excluir').click();
-                    $('#mensagem').removeClass().addClass('text-success').text(response);
-                    resetarFormulario(false);
-                } else {
-                    $('#mensagem-excluir').addClass('text-danger').text(response);
+                    resetarFormulario();
+                    $('#mensagem').addClass('text-success').text(response);
                 }
             },
             cache: false, contentType: false, processData: false,
@@ -311,11 +397,11 @@ var funcionario = $('input[name="funcionario"]:checked').val();        var data 
         $('#id').val('');
         $('#hora_rec').val('');
         $('#obs').val('');
-        $('#funcionario').val('').trigger('change');
+        $('input[name="funcionario"]').prop('checked', false);
         $('#servico').val('').trigger('change');
-        $('#listar-horarios').html('');
-        $('#btn-agendar').show().text('Confirmar Agendamento');
-        $('#btn-editar, #btn-excluir').hide();
+        $('#listar-horarios').html('<small class="text-muted">Selecione uma data e um profissional.</small>');
+        $('#btn-agendar').show();
+        $('#btn-editar, #btn-excluir, #area-notificacao').hide();
         $('#mensagem').text('');
     }
 </script>

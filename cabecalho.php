@@ -50,7 +50,7 @@
       <div class="container">
         <nav class="navbar navbar-expand-lg custom_nav-container ">
           <!-- Logo / Nome -->
-          <a class="navbar-brand" href="index"> <?php echo $nome_sistema ?> </a>
+          <a class="navbar-brand" href="index"> <img src="sistema/img/<?php echo $logo_sistema ?>" width="100px" alt="Logo"> </a>
 
           <!-- Botão menu mobile -->
           <button class="navbar-toggler" type="button" data-toggle="collapse"
