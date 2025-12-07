@@ -1,17 +1,20 @@
 <?php
 
-// Inclui a conexão e as configurações globais (onde $url_sistema e $tipo_rel devem estar)
+// Inclui a conexão e as configurações globais
 include_once '../../conexao.php';
+
+// Suppress warnings that break DomPDF output
+error_reporting(0);
+ini_set('display_errors', 0);
 
 // Recebe os dados do formulário via POST
 $dataInicial = $_POST['dataInicial'];
 $dataFinal = $_POST['dataFinal'];
-$filtro = $_POST['filtro']; // Não precisa de urlencode aqui
+$filtro = $_POST['filtro']; 
 
 // Se o tipo de relatório não for PDF, podemos gerar o HTML e parar.
 // Isso é útil para depuração.
 if ($tipo_rel != 'PDF') {
-    // Para depurar, podemos incluir o arquivo do relatório diretamente
     include 'rel_saidas.php';
     exit();
 }
@@ -24,20 +27,17 @@ use Dompdf\Dompdf;
 use Dompdf\Options;
 
 // 2. CAPTURAR O HTML DO RELATÓRIO USANDO OUTPUT BUFFERING
-// Este método é mais rápido, seguro e confiável.
 ob_start();
 
-// As variáveis $dataInicial, $dataFinal e $filtro já estão disponíveis
-// para o arquivo incluído abaixo, sem precisar passar pela URL.
+// As variáveis enviadas já estão disponíveis
 include 'rel_saidas.php';
 
-$html = ob_get_contents(); // Pega todo o HTML gerado e armazena na variável
-
-ob_end_clean(); // Limpa o buffer de saída
+$html = ob_get_contents(); 
+ob_end_clean(); 
 
 // 3. INICIALIZAR E CONFIGURAR O DOMPDF
 $options = new Options();
-$options->set('isRemoteEnabled', true); // Permite carregar imagens de URLs externas
+$options->set('isRemoteEnabled', true); 
 
 $pdf = new Dompdf($options);
 
@@ -51,10 +51,9 @@ $pdf->set_paper('A4', 'portrait');
 $pdf->render();
 
 // 7. ENVIAR O PDF PARA O NAVEGADOR
-// A função stream() já configura os headers HTTP corretos (como Content-Type: application/pdf)
 $pdf->stream(
     'relatorio_saidas.pdf',
-    array("Attachment" => false) // false = visualizar no navegador, true = forçar download
+    array("Attachment" => false) 
 );
 
 ?>

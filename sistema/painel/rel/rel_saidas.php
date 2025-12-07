@@ -81,24 +81,92 @@ $total_saidas_valor = 0;
 <head>
     <meta charset="UTF-8">
     <title>Relatório de Saídas</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-wEmeIV1mKuiNpC+IOBjI7aAzPcEZeedi5yW5f2yOq55WWLwNGmvvx4Um1vskeMj0" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        @page { margin: 0; }
-        body { font-family: 'Times New Roman', Times, serif; margin: 5px 20px; }
-        .footer { width: 100%; background-color: #ebebeb; padding: 5px; position: absolute; bottom: 0; text-align: center; font-size: 10px; }
-        .cabecalho-principal { padding: 10px 0; margin-bottom: 20px; width: 100%; border-bottom: 1px solid #0340a3; }
-        .cabecalho-info { position: relative; height: 120px; }
-        .imagem-logo { width: 150px; position: absolute; right: 0; top: 10px; }
-        .titulo-relatorio, .data-relatorio { position: absolute; left: 0; }
-        .titulo-relatorio { top: 10px; font-size: 18px; font-weight: bold; text-decoration: underline; }
-        .data-relatorio { top: 40px; font-size: 12px; }
-        .texto-apuracao { font-size: 10px; text-decoration: underline; margin-bottom: 15px; }
-        table.relatorio-tabela { width: 100%; border-collapse: collapse; font-size: 12px; vertical-align: middle; }
-        table.relatorio-tabela th, table.relatorio-tabela td { border: 1px solid #dbdbdb; padding: 6px; text-align: center; }
-        table.relatorio-tabela th { background-color: #ededed; font-size: 13px; }
-        .texto-esquerda { text-align: left; }
-        .resumo-relatorio { text-align: right; margin: 20px 0; font-size: 10px; font-weight: bold; }
-        .resumo-relatorio span { margin-left: 20px; }
+        @page { margin: 20px; }
+        body { 
+            font-family: 'Helvetica', 'Arial', sans-serif; 
+            color: #333;
+        }
+        .footer { 
+            width: 100%; 
+            background-color: #000; 
+            color: #fff;
+            padding: 10px; 
+            position: absolute; 
+            bottom: 0; 
+            text-align: center; 
+            font-size: 10px; 
+        }
+        .cabecalho-info { 
+            position: relative; 
+            height: 100px; 
+            border-bottom: 2px solid #000;
+            margin-bottom: 20px;
+        }
+        .imagem-logo { 
+            width: 120px; 
+            position: absolute; 
+            right: 0; 
+            top: 0; 
+            filter: grayscale(100%); 
+        }
+        .titulo-relatorio { 
+            position: absolute; 
+            left: 0; 
+            top: 20px;
+            font-size: 24px; 
+            font-weight: bold; 
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .data-relatorio { 
+            position: absolute; 
+            left: 0;
+            top: 55px; 
+            font-size: 12px; 
+            color: #555;
+        }
+        .texto-apuracao { 
+            font-size: 11px; 
+            text-transform: uppercase; 
+            margin-bottom: 15px; 
+            font-weight: bold;
+        }
+        table.relatorio-tabela { 
+            width: 100%; 
+            border-collapse: collapse; 
+            font-size: 12px; 
+            margin-bottom: 20px;
+        }
+        table.relatorio-tabela th, table.relatorio-tabela td { 
+            padding: 10px; 
+            text-align: left; 
+            border-bottom: 1px solid #ddd;
+        }
+        table.relatorio-tabela th { 
+            background-color: #000; 
+            color: #fff; 
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
+        table.relatorio-tabela tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .text-danger { color: #d9534f !important; }
+        .resumo-relatorio { 
+            text-align: right; 
+            margin: 20px 0; 
+            font-size: 12px; 
+            font-weight: bold; 
+            padding: 10px;
+            background: #f4f4f4;
+            border-radius: 4px;
+        }
+        .resumo-relatorio span { 
+            margin-left: 20px; 
+        }
     </style>
 </head>
 <body>
@@ -106,22 +174,26 @@ $total_saidas_valor = 0;
     <header class="cabecalho-info">
         <div class="titulo-relatorio">Relatório de <?php echo $acao_rel; ?></div>
         <div class="data-relatorio"><?php echo ucwords($data_hoje); ?></div>
-        <img class="imagem-logo" src="<?php echo $url_sistema; ?>/sistema/img/logo_rel.jpg">
+        <?php 
+        $path_logo = 'C:/wamp64/www/PuroStylo-Agendamentos/sistema/img/logo_rel.jpg';
+        $type_logo = pathinfo($path_logo, PATHINFO_EXTENSION);
+        $data_logo = file_get_contents($path_logo);
+        $base64_logo = 'data:image/' . $type_logo . ';base64,' . base64_encode($data_logo);
+        ?>
+        <img class="imagem-logo" src="<?php echo $base64_logo; ?>">
     </header>
 
-    <div class="cabecalho-principal"></div>
-
-    <main class="mx-2">
+    <main>
         <div class="texto-apuracao"><?php echo $texto_apuracao; ?></div>
 
         <?php if (!empty($saidas)): ?>
-            <table class="table table-striped relatorio-tabela">
+            <table class="table relatorio-tabela">
                 <thead>
                     <tr>
-                        <th class="texto-esquerda">Descrição</th>
+                        <th width="35%">Descrição</th>
                         <th>Tipo</th>
                         <th>Valor</th>
-                        <th>Data PGTO</th>
+                        <th>Data</th>
                         <th>Pago Por</th>
                         <th>Destinado à</th>
                     </tr>
@@ -133,31 +205,30 @@ $total_saidas_valor = 0;
                         $data_pgtoF = (new DateTime($saida['data_pgto']))->format('d/m/Y');
                     ?>
                     <tr>
-                        <td class="texto-esquerda"><?php echo htmlspecialchars($saida['descricao']); ?></td>
+                        <td><?php echo htmlspecialchars($saida['descricao']); ?></td>
                         <td><?php echo htmlspecialchars($saida['tipo']); ?></td>
                         <td>R$ <?php echo $valorF; ?></td>
                         <td><?php echo $data_pgtoF; ?></td>
-                        <td><?php echo htmlspecialchars($saida['nome_usuario_pgto'] ?? 'Não informado'); ?></td>
-                        <td><?php echo htmlspecialchars($saida['nome_destinatario'] ?? 'Não informado'); ?></td>
+                        <td><?php echo htmlspecialchars($saida['nome_usuario_pgto'] ?? '-'); ?></td>
+                        <td><?php echo htmlspecialchars($saida['nome_destinatario'] ?? '-'); ?></td>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>
             </table>
         <?php else: ?>
-            <p>Nenhum registro encontrado para o período e filtro selecionados!</p>
+            <p style="text-align:center;">Nenhum registro encontrado.</p>
         <?php endif; ?>
     </main>
 
     <?php if (!empty($saidas)): ?>
     <div class="resumo-relatorio">
-        <span>TOTAL DE PAGAMENTOS: <?php echo count($saidas); ?></span>
-        <span class="text-danger">TOTAL GERAL: R$ <?php echo number_format($total_saidas_valor, 2, ',', '.'); ?></span>
+        <span>ITEMS: <?php echo count($saidas); ?></span>
+        <span class="text-danger">TOTAL: R$ <?php echo number_format($total_saidas_valor, 2, ',', '.'); ?></span>
     </div>
     <?php endif; ?>
 
     <div class="footer">
-        <span><?php echo $nome_sistema; ?> | Whatsapp: <?php echo $whatsapp_sistema; ?></span>
+        <?php echo $nome_sistema; ?> | <?php echo $whatsapp_sistema; ?>
     </div>
-
 </body>
 </html>

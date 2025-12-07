@@ -1,0 +1,99 @@
+/* Overtaking styles for Black & White Theme */
+
+/* Sidebar Background */
+.cbp-spmenu-vertical,
+.sidebar-left {
+    background-color: #111 !important;
+    border-right: 1px solid #222;
+}
+
+/* Sidebar Links */
+.sidebar ul li a {
+    color: #bbb !important;
+    transition: all 0.3s ease;
+}
+
+.sidebar ul li a:hover,
+.sidebar ul li a:focus,
+.sidebar ul li.active a {
+    background-color: #000 !important;
+    color: #fff !important;
+    padding-left: 30px;
+    /* Slight movement on hover for "better navigation" feel */
+}
+
+/* Sidebar Headers */
+.header {
+    background-color: #000 !important;
+    color: #666 !important;
+    font-weight: bold;
+    border-bottom: 1px solid #222;
+}
+
+/* Logo Area */
+.logo {
+    background-color: #000 !important;
+    border-bottom: 1px solid #222;
+}
+
+.logo a h1 {
+    color: #fff !important;
+}
+
+/* Active/Open Menu Items */
+.collapse.in {
+    background-color: #0a0a0a !important;
+}
+
+/* Top Header */
+.header-section {
+    background: #fff !important;
+    border-bottom: 1px solid #eee;
+}
+
+/* User Menu in Header */
+.user-panel-top li a {
+    border: 1px solid #eee;
+    color: #333;
+}
+
+.user-panel-top li span.digit {
+    background: #000 !important;
+    /* Notification badge black */
+}
+
+/* Mobile Toggle Button */
+button#showLeftPush {
+    background-color: #000 !important;
+    color: #fff !important;
+}
+
+button#showLeftPush:hover {
+    background-color: #333 !important;
+}
+
+/* General Link Color */
+a {
+    color: #000;
+}
+
+a:hover {
+    color: #555;
+}
+
+/* Footer */
+.footer {
+    background: #fff;
+    color: #000;
+    border-top: 1px solid #eee;
+}
+
+/* Icons */
+i.nav_icon {
+    color: #888 !important;
+    opacity: 1 !important;
+}
+
+.sidebar ul li a:hover i.nav_icon {
+    color: #fff !important;
+}

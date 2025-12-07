@@ -93,38 +93,117 @@ $classe_img = ($saldo_total < 0) ? 'negativo.jpg' : 'positivo.jpg';
 <head>
     <meta charset="UTF-8">
     <title>Demonstrativo de Lucro</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-wEmeIV1mKuiNpC+IOBjI7aAzPcEZeedi5yW5f2yOq55WWLwNGmvvx4Um1vskeMj0" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        @page { margin: 0; }
-        body { font-family: 'Times New Roman', Times, serif; margin: 5px 20px; }
-        .footer { width: 100%; background-color: #ebebeb; padding: 5px; position: absolute; bottom: 0; text-align: center; font-size: 10px; }
-        .cabecalho-principal { padding: 10px 0; margin-bottom: 20px; width: 100%; border-bottom: 1px solid #0340a3; }
-        .cabecalho-info { position: relative; height: 120px; }
-        .imagem-logo { width: 150px; position: absolute; right: 0; top: 10px; }
-        .titulo-relatorio, .data-relatorio { position: absolute; left: 0; }
-        .titulo-relatorio { top: 10px; font-size: 18px; font-weight: bold; text-decoration: underline; }
-        .data-relatorio { top: 40px; font-size: 12px; }
-        .texto-apuracao { font-size: 10px; text-decoration: underline; margin-bottom: 15px; }
-        table.relatorio-tabela { width: 100%; border-collapse: collapse; font-size: 12px; vertical-align: middle; }
-        table.relatorio-tabela th, table.relatorio-tabela td { border: 1px solid #dbdbdb; padding: 6px; text-align: center; }
-        table.relatorio-tabela th { background-color: #ededed; font-size: 13px; }
-        .resumo-final { text-align: center; margin-top: 30px; }
-        .resumo-final span { font-size: 20px; font-weight: bold; vertical-align: middle; }
-        .resumo-final img { width: 50px; vertical-align: middle; margin-right: 10px; }
+        @page { margin: 20px; }
+        body { 
+            font-family: 'Helvetica', 'Arial', sans-serif; 
+            color: #333;
+        }
+        .footer { 
+            width: 100%; 
+            background-color: #000; 
+            color: #fff;
+            padding: 10px; 
+            position: absolute; 
+            bottom: 0; 
+            text-align: center; 
+            font-size: 10px; 
+        }
+        .cabecalho-info { 
+            position: relative; 
+            height: 100px; 
+            border-bottom: 2px solid #000;
+            margin-bottom: 20px;
+        }
+        .imagem-logo { 
+            width: 120px; 
+            position: absolute; 
+            right: 0; 
+            top: 0; 
+            filter: grayscale(100%); 
+        }
+        .titulo-relatorio { 
+            position: absolute; 
+            left: 0; 
+            top: 20px;
+            font-size: 24px; 
+            font-weight: bold; 
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .data-relatorio { 
+            position: absolute; 
+            left: 0;
+            top: 55px; 
+            font-size: 12px; 
+            color: #555;
+        }
+        .texto-apuracao { 
+            font-size: 11px; 
+            text-transform: uppercase; 
+            margin-bottom: 15px; 
+            font-weight: bold;
+        }
+        table.relatorio-tabela { 
+            width: 100%; 
+            border-collapse: collapse; 
+            font-size: 12px; 
+            margin-bottom: 20px;
+        }
+        table.relatorio-tabela th, table.relatorio-tabela td { 
+            padding: 10px; 
+            text-align: left; 
+            border-bottom: 1px solid #ddd;
+        }
+        table.relatorio-tabela th { 
+            background-color: #000; 
+            color: #fff; 
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
+        table.relatorio-tabela tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .text-danger { color: #d9534f !important; }
+        .text-success { color: #000 !important; } /* Success is Black */
+        .resumo-final { 
+            text-align: center; 
+            margin-top: 30px; 
+            padding: 20px;
+            border: 1px solid #ddd;
+            background: #fdfdfd;
+        }
+        .resumo-final span { 
+            font-size: 24px; 
+            font-weight: bold; 
+            vertical-align: middle; 
+        }
+        .resumo-final img { 
+            width: 40px; 
+            vertical-align: middle; 
+            margin-right: 15px; 
+            filter: grayscale(100%);
+        }
     </style>
 </head>
 <body>
     <header class="cabecalho-info">
         <div class="titulo-relatorio">Demonstrativo de Lucro</div>
         <div class="data-relatorio"><?php echo ucwords($data_hoje); ?></div>
-        <img class="imagem-logo" src="<?php echo $url_sistema; ?>/sistema/img/logo_rel.jpg">
+        <?php 
+        $path_logo = 'C:/wamp64/www/PuroStylo-Agendamentos/sistema/img/logo_rel.jpg';
+        $type_logo = pathinfo($path_logo, PATHINFO_EXTENSION);
+        $data_logo = file_get_contents($path_logo);
+        $base64_logo = 'data:image/' . $type_logo . ';base64,' . base64_encode($data_logo);
+        ?>
+        <img class="imagem-logo" src="<?php echo $base64_logo; ?>">
     </header>
 
-    <div class="cabecalho-principal"></div>
-
-    <main class="mx-2">
+    <main>
         <div class="texto-apuracao"><?php echo $texto_apuracao; ?></div>
-        <table class="table table-striped relatorio-tabela">
+        <table class="table relatorio-tabela">
             <thead>
                 <tr>
                     <th scope="col">Serviços</th>
@@ -145,25 +224,35 @@ $classe_img = ($saldo_total < 0) ? 'negativo.jpg' : 'positivo.jpg';
                     <td class="text-danger">R$ <?php echo number_format($totais['comissoes'], 2, ',', '.'); ?></td>
                 </tr>
                 <tr>
-                    <td style="background: #e6ffe8" colspan="3" scope="col">Total de Entradas / Ganhos</td>
-                    <td style="background: #ffe7e6" colspan="3" scope="col">Total de Saídas / Despesas</td>
+                    <td style="background: #f0f0f0; font-weight:bold" colspan="3" scope="col">TOTAL GANHOS</td>
+                    <td style="background: #f0f0f0; font-weight:bold" colspan="3" scope="col">TOTAL DESPESAS</td>
                 </tr>
                 <tr>
-                    <td colspan="3" class="text-success" style="font-weight: bold;">R$ <?php echo number_format($total_entradas, 2, ',', '.'); ?></td>
-                    <td colspan="3" class="text-danger" style="font-weight: bold;">R$ <?php echo number_format($total_saidas, 2, ',', '.'); ?></td>
+                    <td colspan="3" class="text-success" style="font-weight: bold; font-size:14px">R$ <?php echo number_format($total_entradas, 2, ',', '.'); ?></td>
+                    <td colspan="3" class="text-danger" style="font-weight: bold; font-size:14px">R$ <?php echo number_format($total_saidas, 2, ',', '.'); ?></td>
                 </tr>
             </tbody>
         </table>
     </main>
 
     <div class="resumo-final">
-        <img src="<?php echo $url_sistema ?>/sistema/img/<?php echo $classe_img ?>" width="100px">
-        <span class="<?php echo $classe_saldo ?>">R$ <?php echo $saldo_totalF ?></span>
+        <!-- Using a local status image if available, else omit img to avoid break -->
+        <?php 
+        $path_img_status = 'C:/wamp64/www/PuroStylo-Agendamentos/sistema/img/' . $classe_img;
+        if(file_exists($path_img_status)){
+            $type_status = pathinfo($path_img_status, PATHINFO_EXTENSION);
+            $data_status = file_get_contents($path_img_status);
+            $base64_status = 'data:image/' . $type_status . ';base64,' . base64_encode($data_status);
+            echo '<img src="'.$base64_status.'">';
+        }
+        ?>
+        <span class="<?php echo ($saldo_total < 0) ? 'text-danger' : 'text-success'; ?>">
+            LUCRO LÍQUIDO: R$ <?php echo $saldo_totalF ?>
+        </span>
     </div>
 
     <div class="footer">
-        <span><?php echo $nome_sistema; ?> | Whatsapp: <?php echo $whatsapp_sistema; ?></span>
+        <?php echo $nome_sistema; ?> | <?php echo $whatsapp_sistema; ?>
     </div>
-
 </body>
 </html>

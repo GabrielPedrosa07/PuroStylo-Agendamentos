@@ -1,7 +1,11 @@
-<?php 
+<?php
 // O include da conexão provavelmente já está no arquivo do relatório,
 // mas se não estiver, mantenha-o aqui.
 include('../../conexao.php');
+
+// Suppress warnings that break DomPDF output
+error_reporting(0);
+ini_set('display_errors', 0);
 
 // Variáveis que o seu relatório precisa (ex: filtros de data, etc.)
 // Devem ser definidas aqui para que o arquivo incluído possa usá-las.

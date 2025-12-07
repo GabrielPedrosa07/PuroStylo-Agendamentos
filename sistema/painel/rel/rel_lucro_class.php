@@ -3,6 +3,10 @@
 // Inclui a conexão e as configurações globais
 include_once '../../conexao.php';
 
+// Suppress warnings that break DomPDF output
+error_reporting(0);
+ini_set('display_errors', 0);
+
 // Recebe os dados do formulário via POST
 $dataInicial = $_POST['dataInicial'];
 $dataFinal = $_POST['dataFinal'];

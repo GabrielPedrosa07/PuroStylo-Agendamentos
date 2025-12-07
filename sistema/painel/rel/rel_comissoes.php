@@ -95,105 +95,179 @@ if (!empty($funcionario) && !empty($comissoes)) {
 <head>
     <meta charset="UTF-8">
     <title>Relatório de Comissões</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-wEmeIV1mKuiNpC+IOBjI7aAzPcEZeedi5yW5f2yOq55WWLwNGmvvx4Um1vskeMj0" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        @page { margin: 0; }
-        body { font-family: 'Times New Roman', Times, serif; margin: 5px 20px; }
-        .footer { width: 100%; background-color: #ebebeb; padding: 5px; position: absolute; bottom: 0; text-align: center; font-size: 10px; }
-        .cabecalho-principal { padding: 10px 0; margin-bottom: 20px; width: 100%; border-bottom: 1px solid #0340a3; }
-        .cabecalho-info { position: relative; height: 120px; }
-        .imagem-logo { width: 150px; position: absolute; right: 0; top: 10px; }
-        .titulo-relatorio, .data-relatorio { position: absolute; left: 0; }
-        .titulo-relatorio { top: 10px; font-size: 17px; font-weight: bold; text-decoration: underline; }
-        .data-relatorio { top: 40px; font-size: 12px; }
-        .texto-apuracao { font-size: 10px; text-decoration: underline; margin-bottom: 15px; }
-        table.relatorio-tabela { width: 100%; border-collapse: collapse; font-size: 12px; vertical-align: middle; }
-        table.relatorio-tabela th, table.relatorio-tabela td { border: 1px solid #dbdbdb; padding: 6px; text-align: center; }
-        table.relatorio-tabela th { background-color: #ededed; font-size: 13px; }
-        .texto-esquerda { text-align: left; }
-        .resumo-relatorio, .info-funcionario { text-align: right; margin: 20px 0; font-size: 10px; font-weight: bold; }
-        .resumo-relatorio span { margin-left: 20px; }
-        .info-funcionario { text-align: center; font-size: 12px; }
-        .info-funcionario span { margin: 0 15px; }
-        .status-img { width: 11px; height: 11px; margin-right: 5px; }
-        .vermelho-escuro { color: #a30303; font-weight: bold; }
+        @page { margin: 20px; }
+        body { 
+            font-family: 'Helvetica', 'Arial', sans-serif; 
+            color: #333;
+        }
+        .footer { 
+            width: 100%; 
+            background-color: #000; 
+            color: #fff;
+            padding: 10px; 
+            position: absolute; 
+            bottom: 0; 
+            text-align: center; 
+            font-size: 10px; 
+        }
+        .cabecalho-info { 
+            position: relative; 
+            height: 100px; 
+            border-bottom: 2px solid #000;
+            margin-bottom: 20px;
+        }
+        .imagem-logo { 
+            width: 120px; 
+            position: absolute; 
+            right: 0; 
+            top: 0; 
+            filter: grayscale(100%); /* Optional: Make logo B&W */
+        }
+        .titulo-relatorio { 
+            position: absolute; 
+            left: 0; 
+            top: 20px;
+            font-size: 24px; 
+            font-weight: bold; 
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .data-relatorio { 
+            position: absolute; 
+            left: 0;
+            top: 55px; 
+            font-size: 12px; 
+            color: #555;
+        }
+        .texto-apuracao { 
+            font-size: 11px; 
+            text-transform: uppercase; 
+            margin-bottom: 15px; 
+            font-weight: bold;
+        }
+        table.relatorio-tabela { 
+            width: 100%; 
+            border-collapse: collapse; 
+            font-size: 12px; 
+            margin-bottom: 20px;
+        }
+        table.relatorio-tabela th, table.relatorio-tabela td { 
+            padding: 10px; 
+            text-align: left; 
+            border-bottom: 1px solid #ddd;
+        }
+        table.relatorio-tabela th { 
+            background-color: #000; 
+            color: #fff; 
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
+        table.relatorio-tabela tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .resumo-relatorio { 
+            text-align: right; 
+            margin: 20px 0; 
+            font-size: 12px; 
+            font-weight: bold; 
+            padding: 10px;
+            background: #f4f4f4;
+            border-radius: 4px;
+        }
+        .resumo-relatorio span { 
+            margin-left: 20px; 
+        }
+        .status-badge {
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: bold;
+            color: #fff;
+        }
+        .status-pago { background-color: #000; }
+        .status-pendente { background-color: #666; }
+        .text-danger { color: #d9534f !important; }
+        .text-success { color: #000 !important; } /* Success is Black in B&W theme */
     </style>
 </head>
 <body>
     <header class="cabecalho-info">
-        <div class="titulo-relatorio">Relatório de Comissões <?php echo $acao_rel . ($info_funcionario ? ' - Funcionário: ' . $info_funcionario['nome'] : ''); ?></div>
+        <div class="titulo-relatorio">Relatório de Comissões</div>
         <div class="data-relatorio"><?php echo ucwords($data_hoje); ?></div>
-        <img class="imagem-logo" src="<?php echo $url_sistema; ?>/sistema/img/logo_rel.jpg">
+        <?php 
+        $path_logo = 'C:/wamp64/www/PuroStylo-Agendamentos/sistema/img/logo_rel.jpg';
+        $type_logo = pathinfo($path_logo, PATHINFO_EXTENSION);
+        $data_logo = file_get_contents($path_logo);
+        $base64_logo = 'data:image/' . $type_logo . ';base64,' . base64_encode($data_logo);
+        ?>
+        <img class="imagem-logo" src="<?php echo $base64_logo; ?>">
     </header>
-    <div class="cabecalho-principal"></div>
-    <main class="mx-2">
+
+    <main>
         <div class="texto-apuracao"><?php echo $texto_apuracao; ?></div>
+        
         <?php if (!empty($comissoes)): ?>
-            <table class="table table-striped relatorio-tabela">
+            <table class="table relatorio-tabela">
                 <thead>
                     <tr>
-                        <th class="texto-esquerda">Serviço</th>
+                        <th width="30%">Serviço</th>
                         <th>Valor</th>
                         <th>Funcionário</th>
-                        <th>Data Serviço</th>
+                        <th>Data</th>
                         <th>Vencimento</th>
-                        <th>Cliente</th>
+                        <th>Status</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php foreach ($comissoes as $comissao):
-                        $classe_debito = '';
-                        $imagem = 'vermelho.jpg';
+                        $total_geral = 0; // Just init
                         if ($comissao['pago'] == 'Sim') {
                             $total_pago += $comissao['valor'];
-                            $imagem = 'verde.jpg';
+                            $status_class = 'status-pago';
+                            $status_text = 'PAGO';
                         } else {
                             $total_a_pagar += $comissao['valor'];
-                            // Verifica se está vencido
-                            if (new DateTime($comissao['data_venc']) < new DateTime(date('Y-m-d'))) {
-                                $classe_debito = 'vermelho-escuro';
-                            }
+                            $status_class = 'status-pendente';
+                            $status_text = 'PENDENTE';
                         }
                     ?>
-                    <tr class="<?php echo $classe_debito; ?>">
-                        <td class="texto-esquerda">
-                            <img class="status-img" src="<?php echo $url_sistema; ?>/sistema/img/<?php echo $imagem; ?>">
-                            <?php echo htmlspecialchars($comissao['nome_servico'] ?? 'N/A'); ?>
-                        </td>
+                    <tr>
+                        <td><?php echo htmlspecialchars($comissao['nome_servico'] ?? 'N/A'); ?></td>
                         <td>R$ <?php echo number_format($comissao['valor'], 2, ',', '.'); ?></td>
                         <td><?php echo htmlspecialchars($comissao['nome_funcionario'] ?? 'N/A'); ?></td>
                         <td><?php echo (new DateTime($comissao['data_lanc']))->format('d/m/Y'); ?></td>
                         <td><?php echo (new DateTime($comissao['data_venc']))->format('d/m/Y'); ?></td>
-                        <td><?php echo htmlspecialchars($comissao['nome_cliente'] ?? 'N/A'); ?></td>
+                        <td><span class="status-badge <?php echo $status_class; ?>"><?php echo $status_text; ?></span></td>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>
             </table>
         <?php else: ?>
-            <p>Nenhum registro encontrado para os filtros selecionados!</p>
+            <p style="text-align:center; padding: 20px;">Nenhum registro encontrado.</p>
         <?php endif; ?>
     </main>
+
     <?php if (!empty($comissoes)): ?>
     <div class="resumo-relatorio">
-        <span>TOTAL DE COMISSÕES: <?php echo count($comissoes); ?></span>
-        <span class="text-success">TOTAL PAGO: R$ <?php echo number_format($total_pago, 2, ',', '.'); ?></span>
-        <span class="text-danger">TOTAL A PAGAR: R$ <?php echo number_format($total_a_pagar, 2, ',', '.'); ?></span>
+        <span>ITEMS: <?php echo count($comissoes); ?></span>
+        <span>PAGO: R$ <?php echo number_format($total_pago, 2, ',', '.'); ?></span>
+        <span>PENDENTE: R$ <?php echo number_format($total_a_pagar, 2, ',', '.'); ?></span>
     </div>
-    <div class="cabecalho-principal"></div>
     <?php endif; ?>
 
     <?php if ($info_funcionario): ?>
-    <div class="info-funcionario">
-        <span><b>Funcionário:</b> <?php echo $info_funcionario['nome']; ?></span>
-        <span><b>Telefone:</b> <?php echo $info_funcionario['tel']; ?></span>
-        <span><?php echo $info_funcionario['pix']; ?></span>
-        <span class="text-danger"><b>Total a Receber:</b> R$ <?php echo number_format($total_a_pagar, 2, ',', '.'); ?></span>
+    <div style="text-align:center; font-size:12px; margin-top:20px; padding:10px; border:1px solid #ddd;">
+        <b>DADOS BANCÁRIOS:</b><br>
+        <?php echo $info_funcionario['nome']; ?> | 
+        <?php echo $info_funcionario['pix']; ?>
     </div>
-    <div class="cabecalho-principal"></div>
     <?php endif; ?>
 
     <div class="footer">
-        <span><?php echo $nome_sistema; ?> | Whatsapp: <?php echo $whatsapp_sistema; ?></span>
+        <?php echo $nome_sistema; ?> | <?php echo $whatsapp_sistema; ?>
     </div>
 </body>
 </html>

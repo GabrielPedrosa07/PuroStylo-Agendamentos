@@ -147,6 +147,13 @@ $dataMesInicial = $partesInicial[1];
 	<link rel="stylesheet" type="text/css" href="DataTables/datatables.min.css"/>
  	<script type="text/javascript" src="DataTables/datatables.min.js"></script>
 
+    <!-- Custom Black & White Theme -->
+    <link href="css/black-white.css" rel="stylesheet" type="text/css" />
+
+    <!-- Fix for SidebarNav 'W' error (Bypassing DRM/Redirect check) -->
+    <script>
+        window.W = function(){};
+    </script>
 	
 </head> 
 <body class="cbp-spmenu-push">
