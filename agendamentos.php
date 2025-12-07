@@ -265,6 +265,22 @@ $servicos = $query_serv->fetchAll(PDO::FETCH_ASSOC);
         $('#data').on('change', listarHorarios);
         $('#form-agenda').on('submit', salvarAgendamento);
         $('#form-excluir').on('submit', excluirAgendamento);
+
+        // Auto-select professional from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const funcId = urlParams.get('func');
+        if (funcId) {
+            const radio = $(`input[name="funcionario"][value="${funcId}"]`);
+            if (radio.length) {
+                radio.prop('checked', true);
+                listarHorarios();
+                
+                // Scroll to the form area smoothly
+                $('html, body').animate({
+                    scrollTop: $(".scheduling_form_content").offset().top - 100
+                }, 1000);
+            }
+        }
     });
 
     // --- FUNÇÕES AJAX ---

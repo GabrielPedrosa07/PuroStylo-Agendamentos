@@ -9,6 +9,7 @@ if(@count($res) > 0){
     $foto = $res[0]['foto'];
     $email = $res[0]['email'];
     $telefone = $res[0]['telefone'];
+    $telefone_link = preg_replace('/[^0-9]/', '', $telefone);
     $descricao = "Profissional especializado em diversos serviços de beleza."; // Placeholder or fetch if generic field exists
 }else{
     echo "<script>window.location='index.php'</script>";
@@ -38,8 +39,11 @@ if(@count($res) > 0){
                <i class="fa fa-envelope" aria-hidden="true"></i> <?php echo $email ?> <br>
                <i class="fa fa-whatsapp" aria-hidden="true"></i> <?php echo $telefone ?>
             </p>
-            <a href="http://api.whatsapp.com/send?1=pt_BR&phone=<?php echo $tel_whatsapp ?>" class="" target="_blank">
+            <a href="agendamentos.php?func=<?php echo $id ?>" class="btn btn-primary" style="background-color: #000; border-color: #000; padding: 10px 25px;">
               Agendar Horário
+            </a>
+            <a href="http://api.whatsapp.com/send?1=pt_BR&phone=<?php echo $telefone_link ?>" target="_blank" class="btn btn-success" style="padding: 10px 25px; margin-left: 10px; background-color: #25d366; border-color: #25d366; color: white;">
+              <i class="fa fa-whatsapp"></i> WhatsApp
             </a>
           </div>
         </div>

@@ -335,6 +335,8 @@ $dataMesInicial = $partesInicial[1];
 
 									<li class="<?php echo @$comentarios ?>"><a href="index.php?pag=comentarios"><i class="fa fa-angle-right"></i>Comentários</a></li>
 
+                                    <li class="<?php echo @$blog ?>"><a href="index.php?pag=blog"><i class="fa fa-angle-right"></i>Blog / Notícias</a></li>
+
 														
 								
 								</ul>

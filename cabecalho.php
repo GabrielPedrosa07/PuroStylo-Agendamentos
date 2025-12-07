@@ -79,6 +79,10 @@
                 <a class="nav-link" href="servicos">Serviços</a>
               </li>
 
+              <li class="nav-item">
+                <a class="nav-link" href="blog">Blog</a>
+              </li>
+
               <!-- Ícones -->
               <li class="nav-item">
                 <a title="Ir para o Sistema" class="nav-link" href="sistema" target="_blank">
