@@ -103,13 +103,18 @@ $dataMesInicial = $partesInicial[1];
         }
 
         /* Override main colors */
-        .sidebar-menu, .header-section, .footer-section, .btn-primary, .bg-primary, .panel-primary > .panel-heading {
+        .sidebar-menu, .header-section, .footer-section, .btn-primary, .bg-primary, .panel-primary > .panel-heading, .modal-header {
             background-color: var(--cor-primaria) !important;
             border-color: var(--cor-primaria) !important;
         }
         
         a, .text-primary, h1, h2, h3, h4, .nav > li > a:hover, .nav > li > a:focus {
              color: var(--cor-primaria);
+        }
+        
+        /* Force modal title to be white (contrast against typically dark primary color) */
+        .modal-title {
+            color: #fff !important;
         }
 
         /* Icon colors */
