@@ -1,4 +1,10 @@
-<?php require_once("sistema/conexao.php") ?>
+<?php 
+@session_start();
+require_once(__DIR__ . "/sistema/conexao.php");
+if(!isset($nivel)){
+    $nivel = '';
+}
+?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 
@@ -16,12 +22,12 @@
   <meta name="author" content="Puro Stylo" />
   
   <!-- Favicon -->
-  <link rel="shortcut icon" href="images/<?php echo $icone_site ?>" type="image/x-icon">
+  <link rel="shortcut icon" href="<?php echo $nivel ?>images/<?php echo $icone_site ?>" type="image/x-icon">
 
   <title><?php echo $nome_sistema ?></title>
 
   <!-- bootstrap core css -->
-  <link rel="stylesheet" type="text/css" href="css/bootstrap.css" />
+  <link rel="stylesheet" type="text/css" href="<?php echo $nivel ?>css/bootstrap.css" />
 
   <!-- fonts style -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
@@ -31,61 +37,58 @@
     href="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/assets/owl.carousel.min.css" />
 
   <!-- font awesome style -->
-  <link href="css/font-awesome.min.css" rel="stylesheet" />
+  <link href="<?php echo $nivel ?>css/font-awesome.min.css" rel="stylesheet" />
 
   <!-- Custom styles -->
-  <link href="css/style.css" rel="stylesheet" />
+  <link href="<?php echo $nivel ?>css/style.css" rel="stylesheet" />
   <!-- responsive style -->
-  <link href="css/responsive.css" rel="stylesheet" />
+  <link href="<?php echo $nivel ?>css/responsive.css" rel="stylesheet" />
 </head>
 
 <body class="sub_page">
   <div class="hero_area">
     <div class="hero_bg_box">
-      <img src="images/<?php echo $img_banner_index ?>" alt="Banner <?php echo $nome_sistema ?>">
+      <img src="<?php echo $nivel ?>images/<?php echo $img_banner_index ?>" alt="Banner <?php echo $nome_sistema ?>">
     </div>
 
-    <!-- Header -->
+     <!-- Header -->
     <header class="header_section">
-      <div class="container">
+      <div class="container-fluid">
         <nav class="navbar navbar-expand-lg custom_nav-container ">
-          <!-- Logo / Nome -->
-          <a class="navbar-brand" href="index"> <img src="sistema/img/<?php echo $logo_sistema ?>" width="100px" alt="Logo"> </a>
+          <a class="navbar-brand" href="<?php echo $nivel ?>index">
+            <span>
+              <img src="<?php echo $nivel ?>sistema/img/<?php echo $logo_sistema ?>" alt="Logo" style="width: 40px; height: 40px; margin-right: 5px;"> 
+              <?php echo $nome_sistema ?>
+            </span>
+          </a>
 
-          <!-- Botão menu mobile -->
           <button class="navbar-toggler" type="button" data-toggle="collapse"
             data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
             aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
+            <span class=""> </span>
           </button>
 
-          <!-- Menu -->
           <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav ml-auto">
-
-              <li class="nav-item active">
-                <a class="nav-link" href="index">Home <span class="sr-only">(current)</span></a>
+            <ul class="navbar-nav  ">
+              <li class="nav-item">
+                <a class="nav-link" href="<?php echo $nivel ?>index">Home </a>
+              </li>
+               <li class="nav-item">
+                <a class="nav-link" href="<?php echo $nivel ?>agendamentos">Agendamentos</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="<?php echo $nivel ?>produtos">Produtos</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="<?php echo $nivel ?>servicos">Serviços</a>
               </li>
 
               <li class="nav-item">
-                <a class="nav-link" href="agendamentos">Agendamentos</a>
+                <a class="nav-link" href="<?php echo $nivel ?>blog">Blog</a>
               </li>
 
               <li class="nav-item">
-                <a class="nav-link" href="produtos">Produtos</a>
-              </li>
-
-              <li class="nav-item">
-                <a class="nav-link" href="servicos">Serviços</a>
-              </li>
-
-              <li class="nav-item">
-                <a class="nav-link" href="blog">Blog</a>
-              </li>
-
-              <!-- Ícones -->
-              <li class="nav-item">
-                <a title="Ir para o Sistema" class="nav-link" href="sistema" target="_blank">
+                <a title="Ir para o Sistema" class="nav-link" href="<?php echo $nivel ?>sistema" target="_blank">
                   <i class="fa fa-user" aria-hidden="true"></i>
                 </a>
               </li>
@@ -102,11 +105,9 @@
                   <i class="fa fa-instagram" aria-hidden="true"></i>
                 </a>
               </li>
-
             </ul>
           </div>
         </nav>
       </div>
-      
     </header>
     <!-- end header section -->

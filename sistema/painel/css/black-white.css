@@ -97,3 +97,79 @@ i.nav_icon {
 .sidebar ul li a:hover i.nav_icon {
     color: #fff !important;
 }
+
+/* --- Added for Admin Config Redesign --- */
+
+/* Modals */
+.modal-header {
+    background-color: #000;
+    color: #fff;
+    border-radius: 4px 4px 0 0;
+}
+
+.modal-title {
+    font-weight: 600;
+}
+
+.close {
+    color: #fff !important;
+    opacity: 0.8;
+}
+
+.close:hover {
+    opacity: 1;
+}
+
+/* Tabs in Modal */
+.nav-tabs {
+    border-bottom: 1px solid #ddd;
+}
+
+.nav-tabs>li>a {
+    color: #555;
+    font-weight: 600;
+    margin-right: 2px;
+}
+
+.nav-tabs>li.active>a,
+.nav-tabs>li.active>a:focus,
+.nav-tabs>li.active>a:hover {
+    color: #000;
+    cursor: default;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-bottom-color: transparent;
+}
+
+/* Buttons */
+.btn-primary {
+    background-color: #000 !important;
+    border-color: #000 !important;
+    transition: all 0.3s;
+}
+
+.btn-primary:hover {
+    background-color: #333 !important;
+    border-color: #333 !important;
+}
+
+/* Form Controls */
+.form-control {
+    border-radius: 4px;
+    /* Standardize radius */
+    border: 1px solid #ccc;
+    box-shadow: none;
+    transition: border-color 0.2s;
+}
+
+.form-control:focus {
+    border-color: #000;
+    box-shadow: none;
+}
+
+/* Input File Custom Styling (Simple) */
+input[type="file"] {
+    background: #f9f9f9;
+    padding: 10px;
+    border: 1px dashed #ccc;
+}

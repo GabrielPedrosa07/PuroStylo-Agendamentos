@@ -150,12 +150,49 @@ $servicos = $query_serv->fetchAll(PDO::FETCH_ASSOC);
     </style>
 </head>
 
-</div> <div class="scheduling_section">
+<div class="scheduling_section layout_padding">
     <div class="container">
         <!-- Conteúdo centralizado e estilizado -->
         <div class="scheduling_form_content form-animate">
             <h2 class="titulo-agendamento">Agende seu Horário</h2>
             
+            <?php if(!isset($_SESSION['id_cliente'])){ ?>
+                <div class="text-center mb-5">
+                    <div class="alert alert-warning">
+                        <h4><i class="fa fa-lock"></i> Área Restrita</h4>
+                        <p>Para realizar agendamentos, é necessário acessar sua conta.</p>
+                    </div>
+                    <a href="login-cliente.php" class="btn btn-dark" style="margin-right: 10px;">Fazer Login</a>
+                    <a href="cadastro-cliente.php" class="btn btn-outline-dark">Criar Conta</a>
+                </div>
+            <?php } else { 
+                // Initialize with Session data (Fallback)
+                $nome_cliente = $_SESSION['nome_cliente'];
+                $telefone_cliente = $_SESSION['telefone_cliente'];
+
+                $id_cliente = $_SESSION['id_cliente'];
+                $query_cli = $pdo->query("SELECT * FROM clientes WHERE id = '$id_cliente'");
+                $res_cli = $query_cli->fetchAll(PDO::FETCH_ASSOC);
+
+                if(@count($res_cli) > 0){
+                    if(!empty($res_cli[0]['nome'])) $nome_cliente = $res_cli[0]['nome'];
+                    if(!empty($res_cli[0]['telefone'])) $telefone_cliente = $res_cli[0]['telefone'];
+                    
+                    // Update session to match DB
+                    $_SESSION['nome_cliente'] = $nome_cliente;
+                    $_SESSION['telefone_cliente'] = $telefone_cliente;
+                }
+            ?>
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <span class="text-muted">Logado como: <strong><?php echo $_SESSION['nome_cliente'] ?></strong></span>
+                <div>
+                     <a href="painel-cliente/index.php" class="btn btn-sm btn-outline-primary" style="margin-right: 5px;">Meus Agendamentos</a>
+                     <a href="logout-cliente.php" class="btn btn-sm btn-danger">Sair</a>
+                </div>
+               
+            </div>
+
             <form id="form-agenda" method="post">
                 <div class="footer_form">
                     
@@ -163,13 +200,79 @@ $servicos = $query_serv->fetchAll(PDO::FETCH_ASSOC);
                     <div class="row">
                          <div class="col-md-6 form-group">
                             <label>Seu Telefone</label>
-                            <input class="form-control" type="text" name="telefone" id="telefone" placeholder="(XX) XXXXX-XXXX" required />
+                            <div class="input-group">
+                                <input class="form-control" type="text" name="telefone" id="telefone" value="<?php echo $telefone_cliente ?>" required />
+                                <div class="input-group-append">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="toggleEdit('telefone', this)">
+                                        <i class="fa fa-edit"></i>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                         <div class="col-md-6 form-group">
                             <label>Seu Nome</label>
-                            <input class="form-control" type="text" name="nome" id="nome" placeholder="Nome Completo" required />
+                            <div class="input-group">
+                                <input class="form-control" type="text" name="nome" id="nome" value="<?php echo $nome_cliente ?>" required />
+                                <div class="input-group-append">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="toggleEdit('nome', this)">
+                                        <i class="fa fa-edit"></i>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
+
+                    <script>
+                    $(document).ready(function() {
+                        // Force values from PHP session/DB to ensure fields are filled
+                        var dbNome = "<?php echo @$nome_cliente ?>";
+                        var dbTel = "<?php echo @$telefone_cliente ?>";
+                        
+                        function setLockedValue(selector, value) {
+                             if(value && $(selector).val() == ''){
+                                $(selector).val(value);
+                                if(selector == '#telefone') $(selector).trigger('input'); 
+                             }
+                             // Lock it after setting
+                             $(selector).attr('readonly', 'readonly').css('background-color', '#eee');
+                        }
+
+                        setLockedValue('#nome', dbNome);
+                        setLockedValue('#telefone', dbTel);
+                    });
+
+                    function toggleEdit(fieldId, btn){
+                        var input = document.getElementById(fieldId);
+                        var icon = btn.querySelector('i');
+                        
+                        if(input.hasAttribute('readonly')){
+                            // Unlock
+                            input.removeAttribute('readonly');
+                            input.style.backgroundColor = '#fff';
+                            icon.classList.remove('fa-edit');
+                            icon.classList.add('fa-save');
+                        }else{
+                            // Lock and Save
+                            input.setAttribute('readonly', 'readonly');
+                            input.style.backgroundColor = '#eee';
+                            icon.classList.remove('fa-save');
+                            icon.classList.add('fa-edit');
+                            
+                            // AJAX Auto-Save
+                            var valor = input.value;
+                            $.ajax({
+                                url: "ajax/atualizar_perfil_cliente.php",
+                                method: "post",
+                                data: {campo: fieldId, valor: valor},
+                                dataType: "text",
+                                success: function(msg){
+                                    // Optional: indicate success via toast or console
+                                    // console.log(msg);
+                                }
+                            });
+                        }
+                    }
+                    </script>
 
                     <!-- Seleção de Funcionário com Fotos -->
                     <div class="selecao-funcionario-container">
@@ -245,6 +348,7 @@ $servicos = $query_serv->fetchAll(PDO::FETCH_ASSOC);
                 </div>
             </form>
             <div id="listar-cartoes" style="margin-top: -30px"></div>
+        <?php } ?>
         </div>
     </div>
 </div>

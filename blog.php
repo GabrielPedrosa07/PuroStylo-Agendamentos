@@ -7,7 +7,7 @@
 </div>
 <!-- Close hero_area to separate header from content -->
 
-<section class="layout_padding" style="background: white;">
+<section style="background: white; padding-top: 50px; padding-bottom: 50px; min-height: 80vh;">
     <div class="container">
       <div class="heading_container heading_center">
         <h2>

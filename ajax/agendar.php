@@ -1,4 +1,5 @@
 <?php
+@session_start();
 require_once("../sistema/conexao.php");
 
 // --- 1. RECEBENDO E VALIDANDO OS DADOS DO FORMULÁRIO ---
@@ -28,15 +29,23 @@ try {
     // --- 2. NOVA VERIFICAÇÃO DE LIMITE DE AGENDAMENTOS ---
     // (só executa se for um novo agendamento, não uma edição)
     if (empty($id)) {
-        // Busca o ID do cliente pelo telefone fornecido
-        $query_cliente_check = $pdo->prepare("SELECT id FROM clientes WHERE telefone = :telefone");
-        $query_cliente_check->bindValue(':telefone', $telefone);
-        $query_cliente_check->execute();
-        $cliente_dados = $query_cliente_check->fetch(PDO::FETCH_ASSOC);
+        
+        $id_cliente_check = null;
 
-        if ($cliente_dados) {
-            $id_cliente_check = $cliente_dados['id'];
+        if(isset($_SESSION['id_cliente'])){
+             $id_cliente_check = $_SESSION['id_cliente'];
+        } else {
+            // Busca o ID do cliente pelo telefone fornecido
+            $query_cliente_check = $pdo->prepare("SELECT id FROM clientes WHERE telefone = :telefone");
+            $query_cliente_check->bindValue(':telefone', $telefone);
+            $query_cliente_check->execute();
+            $cliente_dados = $query_cliente_check->fetch(PDO::FETCH_ASSOC);
+            if ($cliente_dados) {
+                $id_cliente_check = $cliente_dados['id'];
+            }
+        }
 
+        if ($id_cliente_check) {
             // Conta quantos agendamentos esse cliente já tem para o dia
             $query_limite = $pdo->prepare("SELECT COUNT(id) as total_hoje FROM agendamentos WHERE cliente = :cliente AND data = :data");
             $query_limite->execute([':cliente' => $id_cliente_check, ':data' => $data]);
@@ -74,19 +83,23 @@ try {
     }
 
     // --- 4. VERIFICA SE O CLIENTE EXISTE OU CADASTRA UM NOVO ---
-    $query_cliente = $pdo->prepare("SELECT id FROM clientes WHERE telefone = :telefone");
-    $query_cliente->bindValue(':telefone', $telefone);
-    $query_cliente->execute();
-    $cliente_existente = $query_cliente->fetch(PDO::FETCH_ASSOC);
-
-    if ($cliente_existente) {
-        $id_cliente = $cliente_existente['id'];
+    if(isset($_SESSION['id_cliente'])){
+        $id_cliente = $_SESSION['id_cliente'];
     } else {
-        $query_insert_cli = $pdo->prepare("INSERT INTO clientes SET nome = :nome, telefone = :telefone, data_cad = curDate(), cartoes = '0', alertado = 'Não'");
-        $query_insert_cli->bindValue(":nome", $nome);
-        $query_insert_cli->bindValue(":telefone", $telefone);
-        $query_insert_cli->execute();
-        $id_cliente = $pdo->lastInsertId();
+        $query_cliente = $pdo->prepare("SELECT id FROM clientes WHERE telefone = :telefone");
+        $query_cliente->bindValue(':telefone', $telefone);
+        $query_cliente->execute();
+        $cliente_existente = $query_cliente->fetch(PDO::FETCH_ASSOC);
+
+        if ($cliente_existente) {
+            $id_cliente = $cliente_existente['id'];
+        } else {
+            $query_insert_cli = $pdo->prepare("INSERT INTO clientes SET nome = :nome, telefone = :telefone, data_cad = curDate(), cartoes = '0', alertado = 'Não'");
+            $query_insert_cli->bindValue(":nome", $nome);
+            $query_insert_cli->bindValue(":telefone", $telefone);
+            $query_insert_cli->execute();
+            $id_cliente = $pdo->lastInsertId();
+        }
     }
 
     // --- 5. INSERE OU ATUALIZA O AGENDAMENTO ---

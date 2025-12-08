@@ -55,6 +55,9 @@ if($total_reg == 0){
 	$texto_fidelidade = $res[0]['texto_fidelidade'];
 	$texto_agendamento = $res[0]['texto_agendamento'];
 	$msg_agendamento = $res[0]['msg_agendamento'];
+    $tipo_sistema = $res[0]['tipo_sistema'];
+    $cor_sistema = $res[0]['cor_sistema'];
+    $cor_icone = $res[0]['cor_icone'];
 	
 
 	$tel_whatsapp = '55'.preg_replace('/[ ()-]+/' , '' , $whatsapp_sistema);
