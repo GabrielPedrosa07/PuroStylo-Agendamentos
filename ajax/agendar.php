@@ -3,8 +3,9 @@
 require_once("../sistema/conexao.php");
 
 // --- 1. RECEBENDO E VALIDANDO OS DADOS DO FORMULÁRIO ---
-$telefone = $_POST['telefone'];
-$nome = $_POST['nome'];
+$telefone = $_POST['telefone'] ?? $_SESSION['telefone_cliente'] ?? '';
+$nome = $_POST['nome'] ?? $_SESSION['nome_cliente'] ?? '';
+
 $funcionario = $_POST['funcionario'];
 $hora = $_POST['hora'] ?? '';
 $servico = $_POST['servico'];

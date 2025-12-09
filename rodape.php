@@ -95,23 +95,23 @@
   </div>
 
   <!-- jQery -->
-  <script src="js/jquery-3.4.1.min.js"></script>
+  <script src="<?php echo $nivel ?>js/jquery-3.4.1.min.js"></script>
   <!-- popper js -->
   <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
   <!-- bootstrap js -->
-  <script src="js/bootstrap.js"></script>
+  <script src="<?php echo $nivel ?>js/bootstrap.js"></script>
   <!-- owl slider -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
   <!-- custom js -->
-  <script src="js/custom.js"></script>
+  <script src="<?php echo $nivel ?>js/custom.js"></script>
   <!-- Cart Logic -->
-  <script src="js/cart.js"></script>
+  <script src="<?php echo $nivel ?>js/cart.js"></script>
   <!-- Google Map -->
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCh39n5U-4IoWpsVGUHWdqB6puEkhRLdmI&callback=myMap"></script>
   <!-- End Google Map -->
 
     <!-- Mascaras JS -->
-<script type="text/javascript" src="sistema/painel/js/mascaras.js"></script>
+<script type="text/javascript" src="<?php echo $nivel ?>sistema/painel/js/mascaras.js"></script>
 
 <!-- Ajax para funcionar Mascaras JS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.11/jquery.mask.min.js"></script> 
@@ -125,37 +125,11 @@
 <script type="text/javascript">
   
 $("#form_cadastro").submit(function () {
-
     event.preventDefault();
-    var formData = new FormData(this);
+    var nome = $('#form_cadastro input[name="nome"]').val();
+    var telefone = $('#telefone_rodape').val();
 
-    $.ajax({
-        url: 'ajax/cadastrar.php',
-        type: 'POST',
-        data: formData,
-
-        success: function (mensagem) {
-            $('#mensagem-rodape').text('');
-            $('#mensagem-rodape').removeClass()
-            if (mensagem.trim() == "Salvo com Sucesso") {
-               //$('#mensagem-rodape').addClass('text-success')
-                $('#mensagem-rodape').text(mensagem)
-
-            } else {
-
-                //$('#mensagem-rodape').addClass('text-danger')
-                $('#mensagem-rodape').text(mensagem)
-            }
-
-
-        },
-
-        cache: false,
-        contentType: false,
-        processData: false,
-
-    });
-
+    window.location = "cadastro-cliente.php?nome=" + nome + "&telefone=" + telefone;
 });
 
 

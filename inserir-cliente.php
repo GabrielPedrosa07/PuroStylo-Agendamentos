@@ -8,6 +8,11 @@ $senha = $_POST['senha'];
 $data_nasc = $_POST['data_nasc'];
 $endereco = $_POST['endereco'];
 
+if($nome == '' || $telefone == ''){
+    echo 'Nome e Telefone são obrigatórios!';
+    exit();
+}
+
 $senha_crip = md5($senha);
 
 // Validar Duplicidade (Telefone ou Email)
@@ -31,13 +36,17 @@ if(@count($res) > 0){
 }
 
 try {
+    if($data_nasc == ""){
+        $data_nasc = null;
+    }
+    
     $query = $pdo->prepare("INSERT INTO clientes SET nome = :nome, telefone = :telefone, email = :email, senha = :senha, senha_crip = :senha_crip, data_nasc = :data_nasc, endereco = :endereco, data_cad = curDate(), alertado = 'Não', cartoes = '0'");
     $query->bindValue(":nome", "$nome");
     $query->bindValue(":telefone", "$telefone");
     $query->bindValue(":email", "$email");
-    $query->bindValue(":senha", "$senha"); // Still saving plain for legacy support or viewing in admin if needed, consistent with users table pattern often seen in this project style
+    $query->bindValue(":senha", "$senha"); 
     $query->bindValue(":senha_crip", "$senha_crip");
-    $query->bindValue(":data_nasc", "$data_nasc");
+    $query->bindValue(":data_nasc", $data_nasc);
     $query->bindValue(":endereco", "$endereco");
     $query->execute();
 

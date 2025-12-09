@@ -21,7 +21,10 @@ $id_cliente = $_SESSION['id_cliente'];
     <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h3>Meus Agendamentos</h3>
-        <a href="../agendamentos.php" class="btn btn-primary" style="background-color: #000; border-color: #000;">Novo Agendamento</a>
+        <div>
+            <a href="editar-perfil.php" class="btn btn-outline-dark mr-2">Editar Perfil</a>
+            <a href="../agendamentos.php" class="btn btn-primary" style="background-color: #000; border-color: #000;">Novo Agendamento</a>
+        </div>
     </div>
 
     <div class="alert alert-info">

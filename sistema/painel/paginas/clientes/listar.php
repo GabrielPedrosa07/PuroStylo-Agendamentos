@@ -7,7 +7,7 @@ try {
     // Buscamos todos os clientes e o nome do último serviço em uma única consulta.
     $query = $pdo->query("
         SELECT 
-            c.id, c.nome, c.telefone, c.endereco, c.data_nasc, c.cartoes, c.data_cad, c.data_retorno,
+            c.id, c.nome, c.telefone, c.endereco, c.data_nasc, c.cartoes, c.data_cad, c.data_retorno, c.email,
             s.nome AS nome_servico
         FROM 
             clientes c
@@ -48,6 +48,7 @@ try {
             // Dados completos para os modais, evitando múltiplas consultas
             "id" => $row['id'],
             "endereco" => $row['endereco'],
+            "email" => $row['email'],
             "data_nasc_raw" => $row['data_nasc'],
             "nome_servico" => $row['nome_servico'] ?? 'Nenhum!',
             "classe_retorno" => $classe_retorno,

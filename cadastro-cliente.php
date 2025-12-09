@@ -18,11 +18,11 @@
                         <div class="row">
                             <div class="col-md-6 form-group">
                                 <label>Nome Completo</label>
-                                <input type="text" name="nome" class="form-control" required>
+                                <input type="text" name="nome" class="form-control" value="<?php echo @$_GET['nome'] ?>" required>
                             </div>
                             <div class="col-md-6 form-group">
                                 <label>Telefone (WhatsApp)</label>
-                                <input type="text" name="telefone" id="telefone" class="form-control" placeholder="(XX) XXXXX-XXXX" required>
+                                <input type="text" name="telefone" id="telefone" class="form-control" placeholder="(XX) XXXXX-XXXX" value="<?php echo @$_GET['telefone'] ?>" required>
                             </div>
                         </div>
 
@@ -89,10 +89,11 @@
         $('#btn-salvar').prop('disabled', true).text('Cadastrando...');
         $('#mensagem').text('');
 
+        // alert($('#form-cadastro').serialize()); // Debug line to verify data
         $.ajax({
             url: "inserir-cliente.php",
             method: "post",
-            data: $('form').serialize(),
+            data: $('#form-cadastro').serialize(),
             dataType: "text",
             success: function(msg){
                 if(msg.trim() === 'Salvo com Sucesso'){

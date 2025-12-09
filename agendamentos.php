@@ -185,94 +185,27 @@ $servicos = $query_serv->fetchAll(PDO::FETCH_ASSOC);
             ?>
 
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <span class="text-muted">Logado como: <strong><?php echo $_SESSION['nome_cliente'] ?></strong></span>
                 <div>
-                     <a href="painel-cliente/index.php" class="btn btn-sm btn-outline-primary" style="margin-right: 5px;">Meus Agendamentos</a>
-                     <a href="logout-cliente.php" class="btn btn-sm btn-danger">Sair</a>
+                     <span class="text-muted d-block">Logado como:</span>
+                     <h4><strong><?php echo $_SESSION['nome_cliente'] ?></strong></h4>
+                     <span class="text-muted"><i class="fa fa-phone"></i> <?php echo $_SESSION['telefone_cliente'] ?></span>
                 </div>
-               
+                
+                <div class="text-right">
+                     <a href="painel-cliente/index.php" class="btn btn-sm btn-outline-dark mb-2 d-block"><i class="fa fa-calendar"></i> Meus Agendamentos</a>
+                     <a href="painel-cliente/editar-perfil.php" class="btn btn-sm btn-outline-primary mb-2 d-block"><i class="fa fa-edit"></i> Editar Perfil</a>
+                     <a href="logout-cliente.php" class="btn btn-sm btn-danger d-block"><i class="fa fa-sign-out"></i> Sair</a>
+                </div>
             </div>
 
             <form id="form-agenda" method="post">
+                <!-- Inputs ocultos movidos para dentro do form -->
+                <input type="hidden" name="nome" id="nome" value="<?php echo $_SESSION['nome_cliente'] ?>">
+                <input type="hidden" name="telefone" id="telefone" value="<?php echo $_SESSION['telefone_cliente'] ?>">
+
                 <div class="footer_form">
                     
-                    <!-- Linha 1: Nome e Telefone -->
-                    <div class="row">
-                         <div class="col-md-6 form-group">
-                            <label>Seu Telefone</label>
-                            <div class="input-group">
-                                <input class="form-control" type="text" name="telefone" id="telefone" value="<?php echo $telefone_cliente ?>" required />
-                                <div class="input-group-append">
-                                    <button class="btn btn-outline-secondary" type="button" onclick="toggleEdit('telefone', this)">
-                                        <i class="fa fa-edit"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6 form-group">
-                            <label>Seu Nome</label>
-                            <div class="input-group">
-                                <input class="form-control" type="text" name="nome" id="nome" value="<?php echo $nome_cliente ?>" required />
-                                <div class="input-group-append">
-                                    <button class="btn btn-outline-secondary" type="button" onclick="toggleEdit('nome', this)">
-                                        <i class="fa fa-edit"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <script>
-                    $(document).ready(function() {
-                        // Force values from PHP session/DB to ensure fields are filled
-                        var dbNome = "<?php echo @$nome_cliente ?>";
-                        var dbTel = "<?php echo @$telefone_cliente ?>";
-                        
-                        function setLockedValue(selector, value) {
-                             if(value && $(selector).val() == ''){
-                                $(selector).val(value);
-                                if(selector == '#telefone') $(selector).trigger('input'); 
-                             }
-                             // Lock it after setting
-                             $(selector).attr('readonly', 'readonly').css('background-color', '#eee');
-                        }
-
-                        setLockedValue('#nome', dbNome);
-                        setLockedValue('#telefone', dbTel);
-                    });
-
-                    function toggleEdit(fieldId, btn){
-                        var input = document.getElementById(fieldId);
-                        var icon = btn.querySelector('i');
-                        
-                        if(input.hasAttribute('readonly')){
-                            // Unlock
-                            input.removeAttribute('readonly');
-                            input.style.backgroundColor = '#fff';
-                            icon.classList.remove('fa-edit');
-                            icon.classList.add('fa-save');
-                        }else{
-                            // Lock and Save
-                            input.setAttribute('readonly', 'readonly');
-                            input.style.backgroundColor = '#eee';
-                            icon.classList.remove('fa-save');
-                            icon.classList.add('fa-edit');
-                            
-                            // AJAX Auto-Save
-                            var valor = input.value;
-                            $.ajax({
-                                url: "ajax/atualizar_perfil_cliente.php",
-                                method: "post",
-                                data: {campo: fieldId, valor: valor},
-                                dataType: "text",
-                                success: function(msg){
-                                    // Optional: indicate success via toast or console
-                                    // console.log(msg);
-                                }
-                            });
-                        }
-                    }
-                    </script>
+                    <!-- Linha 1 removida pois agora é fixo via hidden inputs acima -->
 
                     <!-- Seleção de Funcionário com Fotos -->
                     <div class="selecao-funcionario-container">
@@ -364,7 +297,7 @@ $servicos = $query_serv->fetchAll(PDO::FETCH_ASSOC);
         $('.sel2').select2({ width: '100%' });
         $('#telefone').mask('(00) 00000-0000');
         
-        $('#telefone').on('blur', buscarClientePorTelefone);
+        // $('#telefone').on('blur', buscarClientePorTelefone); // Desativado pois agora puxa da sessão
         $('input[name="funcionario"]').on('change', listarHorarios); 
         $('#data').on('change', listarHorarios);
         $('#form-agenda').on('submit', salvarAgendamento);

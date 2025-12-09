@@ -43,28 +43,40 @@ if(@$clientes == 'ocultar'){
             </div>
             <form id="form" method="post">
                 <div class="modal-body">
-                     <div class="row">
-                        <div class="col-md-5 form-group">
+                    <div class="row">
+                        <div class="col-md-6 form-group">
                             <label>Nome</label>
                             <input type="text" class="form-control" id="nome" name="nome" placeholder="Nome" required>
                         </div>
-                        <div class="col-md-4 form-group">
+                         <div class="col-md-6 form-group">
                             <label>Telefone</label>
                             <input type="text" class="form-control" id="telefone" name="telefone" placeholder="Telefone" >
                         </div>
-                        <div class="col-md-3 form-group">
-                            <label>Cartões</label>
-                            <input type="number" class="form-control" id="cartao" name="cartao" value="0">
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 form-group">
+                            <label>Email</label>
+                            <input type="email" class="form-control" id="email" name="email" placeholder="Email" >
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label>Senha (Deixe vazio para manter)</label>
+                            <input type="password" class="form-control" id="senha" name="senha" placeholder="Nova Senha" >
                         </div>
                     </div>
+
                     <div class="row">
-                        <div class="col-md-8 form-group">
+                        <div class="col-md-6 form-group">
                             <label>Endereço</label>
                             <input type="text" class="form-control" id="endereco" name="endereco" placeholder="Rua X Número 1 Bairro xxx" >
                         </div>
-                        <div class="col-md-4 form-group">
+                        <div class="col-md-3 form-group">
                             <label>Nascimento</label>
                             <input type="date" class="form-control" id="data_nasc" name="data_nasc" >
+                        </div>
+                         <div class="col-md-3 form-group">
+                            <label>Cartões</label>
+                            <input type="number" class="form-control" id="cartao" name="cartao" value="0">
                         </div>
                     </div>
                     <input type="hidden" name="id" id="id">
@@ -89,7 +101,30 @@ if(@$clientes == 'ocultar'){
                 </button>
             </div>
             <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="tile">
+                            <div class="tile-body">
+                                <span class="d-block"><b>Nome: </b><span id="nome_dados"></span></span>
+                                <span class="d-block"><b>Telefone: </b><span id="telefone_dados"></span></span>
+                                <span class="d-block"><b>Email: </b><span id="email_dados"></span></span>
+                                <span class="d-block"><b>Endereço: </b><span id="endereco_dados"></span></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                         <div class="tile">
+                            <div class="tile-body">
+                                <span class="d-block"><b>Cadastrado em: </b><span id="data_cad_dados"></span></span>
+                                <span class="d-block"><b>Nascimento: </b><span id="data_nasc_dados"></span></span>
+                                <span class="d-block"><b>Cartões: </b><span id="cartoes_dados"></span></span>
+                                <span class="d-block"><b>Último Retorno: </b><span id="retorno_dados"></span></span>
+                                <span class="d-block"><b>Último Serviço: </b><span id="servico_dados"></span></span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+            </div>
         </div>
     </div>
 </div>
@@ -155,6 +190,8 @@ if(@$clientes == 'ocultar'){
         $('#id').val('');
         $('#nome').val('');
         $('#telefone').val('');
+        $('#email').val('');
+        $('#senha').val('');
         $('#endereco').val('');
         $('#data_nasc').val('');
         $('#cartao').val('0');
@@ -171,6 +208,7 @@ if(@$clientes == 'ocultar'){
         $('#id').val(dados.id);
         $('#nome').val(dados.nome);
         $('#telefone').val(dados.telefone);
+        $('#email').val(dados.email);
         $('#endereco').val(dados.endereco);
         $('#data_nasc').val(dados.data_nasc_raw);
         $('#cartao').val(dados.cartoes);
@@ -182,6 +220,7 @@ if(@$clientes == 'ocultar'){
 
     function mostrar(dados){
         $('#nome_dados').text(dados.nome);
+        $('#email_dados').text(dados.email);
         $('#data_cad_dados').text(dados.data_cad);
         $('#data_nasc_dados').text(dados.data_nasc);
         $('#cartoes_dados').text(dados.cartoes);
