@@ -58,6 +58,8 @@ if($total_reg == 0){
     $tipo_sistema = $res[0]['tipo_sistema'];
     $cor_sistema = $res[0]['cor_sistema'];
     $cor_icone = $res[0]['cor_icone'];
+    $termos_uso = $res[0]['termos_uso'];
+    $politica_privacidade = $res[0]['politica_privacidade'];
 	
 
 	$tel_whatsapp = '55'.preg_replace('/[ ()-]+/' , '' , $whatsapp_sistema);

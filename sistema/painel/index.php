@@ -1120,6 +1120,24 @@ $dataMesInicial = $partesInicial[1];
                                     </div> 
                                 </div>
                             </div>
+
+                             <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label>Termos de Uso</label>
+                                        <textarea class="form-control" id="termos_uso" name="termos_uso" rows="5" placeholder="Texto dos Termos de Uso"><?php echo $termos_uso ?></textarea>   
+                                    </div> 
+                                </div>
+                            </div>
+
+                             <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label>Política de Privacidade</label>
+                                        <textarea class="form-control" id="politica_privacidade" name="politica_privacidade" rows="5" placeholder="Texto da Política de Privacidade"><?php echo $politica_privacidade ?></textarea>   
+                                    </div> 
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Tab Imagens -->

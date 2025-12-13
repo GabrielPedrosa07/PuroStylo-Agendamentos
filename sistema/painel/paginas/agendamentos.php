@@ -192,6 +192,9 @@ $servicos = $query_serv->fetchAll(PDO::FETCH_ASSOC);
 .status-concluido {
     border-left-color: #198754; /* Verde */
 }
+.status-aguardando {
+    border-left-color: #ffc107; /* Amarelo */
+}
 .agenda-card .card-body {
     padding: 1rem;
     display: flex;
@@ -638,4 +641,37 @@ function listarHorarios() {
             cache: false, contentType: false, processData: false,
         });
     });
+
+    // --- NOVA FUNÇÃO DE CONFIRMAÇÃO ---
+    function confirmarAgendamento(id, linkWhats){
+        console.log("Iniciando confirmação...", id, linkWhats);
+        
+        // Remove verificação de null/undefined
+        if(!linkWhats) linkWhats = "";
+
+        if(confirm("Deseja confirmar este agendamento?")){
+            $.ajax({
+                url: 'paginas/' + pag + "/confirmar.php",
+                method: 'POST',
+                data: {id: id},
+                dataType: "text",
+                success: function (mensagem) {
+                    console.log("Resposta do servidor:", mensagem);
+                    if (mensagem.trim() == "Confirmado com Sucesso") {
+                        listar();
+                        // Abre WhatsApp
+                        if(linkWhats != "") {
+                             window.open(linkWhats, '_blank');
+                        }
+                    } else {
+                        alert("Erro: " + mensagem); 
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error("Erro AJAX:", status, error);
+                    alert("Ocorreu um erro de comunicação. Verifique o console.");
+                }
+            });
+        }
+    }
 </script>

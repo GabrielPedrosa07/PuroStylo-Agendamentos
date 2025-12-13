@@ -38,19 +38,21 @@ if (count($agendamentos) > 0) {
 
         // --- LÓGICA DE VISUALIZAÇÃO (AQUI ESTÃO AS MUDANÇAS) ---
         
+        // --- LÓGICA DE VISUALIZAÇÃO (ATUALIZADA) ---
+        
         $acoes_html = '';
         $badge_status_html = '';
         $classe_borda_status = '';
+        $status = $agendamento['status'];
 
-        if ($agendamento['status'] == 'Agendado') {
-            // SE O STATUS FOR 'AGENDADO'
-            $classe_borda_status = 'status-agendado';
-            
-            // NOVO: Badge Azul "Agendado"
-            $badge_status_html = '<span class="badge badge-primary ml-2">Agendado</span>';
-
-            // Menu completo com as duas opções: Finalizar e Excluir
-            $acoes_html = <<<HTML
+        // Normalizar status antigos ou diferentes
+        if ($status == 'Agendado' || $status == 'Confirmado') {
+             $classe_borda_status = 'status-agendado'; // Azul
+             $status_texto = 'Confirmado';
+             $badge_class = 'badge-primary';
+             
+             // Botões para Confirmado
+             $acoes_html = <<<HTML
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
                     <i class="fa fa-ellipsis-v fa-lg"></i>
                 </a>
@@ -68,20 +70,53 @@ if (count($agendamentos) > 0) {
                 </ul>
             HTML;
 
-        } else {
-            // SE O STATUS FOR 'CONCLUÍDO' (OU QUALQUER OUTRO)
-            $classe_borda_status = 'status-concluido';
-            
-            // NOVO: Badge Verde "Finalizado"
-            $badge_status_html = '<span class="badge badge-success ml-2">Finalizado</span>';
+        } else if ($status == 'Aguardando Aprovação') {
+             $classe_borda_status = 'status-aguardando'; // Amarelo (precisa criar CSS)
+             $status_texto = 'Aguardando Aprovação';
+             $badge_class = 'badge-warning text-dark';
 
-            // Mostra APENAS o botão de excluir, sem o menu dropdown
+             // Dados para o WhatsApp
+             $tel_cliente = preg_replace('/[^0-9]/', '', $agendamento['tel_cliente']);
+             $msg_whats = "Olá {$nome_cliente_html}, seu agendamento para *{$nome_servico_html}* no dia *" . date('d/m/Y', strtotime($data_agenda)) . "* às *{$horaF}* foi confirmado!";
+             $link_whats = "http://api.whatsapp.com/send?phone=55{$tel_cliente}&text=" . urlencode($msg_whats);
+             
+             // Escape para uso seguro no JS (evita que aspas quebrem o HTML)
+             $link_whats_escaped = htmlspecialchars($link_whats, ENT_QUOTES, 'UTF-8');
+
+             // Botões para Aguardando
+             $acoes_html = <<<HTML
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                    <i class="fa fa-ellipsis-v fa-lg"></i>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-right">
+                    <li>
+                        <a class="dropdown-item" href="#" onclick="confirmarAgendamento({$agendamento['id']}, '{$link_whats_escaped}')">
+                            <i class="fa fa-thumbs-up text-primary"></i> Confirmar Agendamento
+                        </a>
+                    </li>
+                    <li>
+                         <a class="dropdown-item" href="#" onclick="excluir({$agendamento['id']}, '{$horaF}')">
+                            <i class="fa fa-trash-o text-danger"></i> Excluir
+                        </a>
+                    </li>
+                </ul>
+            HTML;
+
+        } else {
+            // CONCLUÍDO / FINALIZADO
+            $classe_borda_status = 'status-concluido'; // Verde
+            $status_texto = 'Finalizado';
+             $badge_class = 'badge-success';
+            
+            // Botões para Finalizado
             $acoes_html = <<<HTML
                 <a class="acao-unica" href="#" onclick="excluir({$agendamento['id']}, '{$horaF}')" title="Excluir Agendamento">
                     <i class="fa fa-trash-o text-danger fa-lg"></i>
                 </a>
             HTML;
         }
+
+        $badge_status_html = "<span class='badge {$badge_class} ml-2'>{$status_texto}</span>";
 
         // --- HTML FINAL DO CARD ---
         echo <<<HTML

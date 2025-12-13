@@ -14,6 +14,10 @@
               <p>
                 <?php echo $texto_rodape ?>
               </p>
+               <p style="margin-top: 10px;">
+                <a href="termos.php" style="color: #ccc; font-size: 13px;">Termos de Uso</a> | 
+                <a href="politica.php" style="color: #ccc; font-size: 13px;">Política de Privacidade</a>
+              </p>
             </div>
           </div>
           <div class="col-md-7 col-lg-4 ">
@@ -121,6 +125,57 @@
 
 </html>
 
+
+
+<!-- Cookie Consent -->
+<style>
+#cookie-banner {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: #333;
+    color: #fff;
+    padding: 15px;
+    text-align: center;
+    z-index: 9999;
+    display: none;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.3);
+}
+#cookie-banner a {
+    color: #fff;
+    text-decoration: underline;
+}
+#cookie-banner button {
+    background-color: #f1f1f1;
+    color: #333;
+    border: none;
+    padding: 8px 15px;
+    margin-left: 15px;
+    cursor: pointer;
+    border-radius: 4px;
+    font-weight: bold;
+}
+#cookie-banner button:hover {
+    background-color: #ddd;
+}
+</style>
+
+<div id="cookie-banner">
+    Este site utiliza cookies para garantir a melhor experiência. Ao continuar navegando, você concorda com nossos <a href="termos.php">Termos de Uso</a> e <a href="politica.php">Política de Privacidade</a>.
+    <button id="accept-cookies">Aceitar e Fechar</button>
+</div>
+
+<script>
+    if (!localStorage.getItem('cookiesAccepted')) {
+        document.getElementById('cookie-banner').style.display = 'block';
+    }
+
+    document.getElementById('accept-cookies').addEventListener('click', function() {
+        localStorage.setItem('cookiesAccepted', 'true');
+        document.getElementById('cookie-banner').style.display = 'none';
+    });
+</script>
 
 <script type="text/javascript">
   

@@ -62,9 +62,11 @@ $id_cliente = $_SESSION['id_cliente'];
                 $msg_whatsapp = "Olá, meu nome é " . $_SESSION['nome_cliente'] . ". Gostaria de cancelar meu agendamento de $servico no dia $dataF às $horaF.";
                 $link_whatsapp = "http://api.whatsapp.com/send?phone=55$tel_prof_clean&text=" . urlencode($msg_whatsapp);
 
-                $classe_status = 'text-success';
-                if($status == 'Pendente'){
-                    $classe_status = 'text-danger';
+                $classe_status = 'text-primary';
+                if($status == 'Aguardando Aprovação'){
+                    $classe_status = 'text-warning';
+                } else if($status == 'Concluído' || $status == 'Finalizado'){
+                     $classe_status = 'text-success';
                 }
          ?>
 

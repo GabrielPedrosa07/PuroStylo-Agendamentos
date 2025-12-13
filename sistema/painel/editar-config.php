@@ -17,6 +17,8 @@ $quantidade_cartoes = $_POST['quantidade_cartoes'];
 $texto_fidelidade = $_POST['texto_fidelidade'];
 $texto_agendamento = $_POST['texto_agendamento'];
 $msg_agendamento = $_POST['msg_agendamento'];
+$termos_uso = $_POST['termos_uso'];
+$politica_privacidade = $_POST['politica_privacidade'];
 
 //SCRIPT PARA SUBIR FOTO NO SERVIDOR
 $caminho = '../img/logo.png';
@@ -141,7 +143,7 @@ $cor_icone = $_POST['cor_icone'];
 
 // ... (existing code) ...
 
-$query = $pdo->prepare("UPDATE config SET nome = :nome, email = :email, telefone_whatsapp = :whatsapp, telefone_fixo = :telefone_fixo, endereco = :endereco, logo = 'logo.png', icone = 'favicon.png', logo_rel = 'logo_rel.jpg', tipo_rel = '$tipo_rel', instagram = :instagram, tipo_comissao = '$tipo_comissao', texto_rodape = :texto_rodape, img_banner_index = '$img_banner_index', icone_site = 'favicon.png', imagem_sobre = '$img_sobre', texto_sobre = :texto_sobre, mapa = :mapa, quantidade_cartoes = '$quantidade_cartoes', texto_fidelidade = :texto_fidelidade, texto_agendamento = :texto_agendamento, msg_agendamento = :msg_agendamento, tipo_sistema = :tipo_sistema, cor_sistema = :cor_sistema, cor_icone = :cor_icone ");
+$query = $pdo->prepare("UPDATE config SET nome = :nome, email = :email, telefone_whatsapp = :whatsapp, telefone_fixo = :telefone_fixo, endereco = :endereco, logo = 'logo.png', icone = 'favicon.png', logo_rel = 'logo_rel.jpg', tipo_rel = '$tipo_rel', instagram = :instagram, tipo_comissao = '$tipo_comissao', texto_rodape = :texto_rodape, img_banner_index = '$img_banner_index', icone_site = 'favicon.png', imagem_sobre = '$img_sobre', texto_sobre = :texto_sobre, mapa = :mapa, quantidade_cartoes = '$quantidade_cartoes', texto_fidelidade = :texto_fidelidade, texto_agendamento = :texto_agendamento, msg_agendamento = :msg_agendamento, tipo_sistema = :tipo_sistema, cor_sistema = :cor_sistema, cor_icone = :cor_icone, termos_uso = :termos_uso, politica_privacidade = :politica_privacidade ");
 
 $query->bindValue(":nome", "$nome");
 $query->bindValue(":email", "$email");
@@ -158,6 +160,8 @@ $query->bindValue(":msg_agendamento", "$msg_agendamento");
 $query->bindValue(":tipo_sistema", "$tipo_sistema");
 $query->bindValue(":cor_sistema", "$cor_sistema");
 $query->bindValue(":cor_icone", "$cor_icone");
+$query->bindValue(":termos_uso", "$termos_uso");
+$query->bindValue(":politica_privacidade", "$politica_privacidade");
 
 $query->execute();
 

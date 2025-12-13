@@ -114,12 +114,12 @@ try {
     ];
 
     if (empty($id)) {
-        $sql = "INSERT INTO agendamentos SET funcionario = :func, cliente = :cli, hora = :hora, data = :data, usuario = '0', status = 'Agendado', obs = :obs, data_lanc = curDate(), servico = :serv";
-        $mensagem_sucesso = 'Agendado com Sucesso';
+        $sql = "INSERT INTO agendamentos SET funcionario = :func, cliente = :cli, hora = :hora, data = :data, usuario = '0', status = 'Aguardando Aprovação', obs = :obs, data_lanc = curDate(), servico = :serv";
+        $mensagem_sucesso = 'Agendado com Sucesso! Aguarde a aprovação.';
     } else {
-        $sql = "UPDATE agendamentos SET funcionario = :func, cliente = :cli, hora = :hora, data = :data, obs = :obs, servico = :serv WHERE id = :id";
+        $sql = "UPDATE agendamentos SET funcionario = :func, cliente = :cli, hora = :hora, data = :data, obs = :obs, servico = :serv, status = 'Aguardando Aprovação' WHERE id = :id";
         $params_agendamento[':id'] = $id;
-        $mensagem_sucesso = 'Editado com Sucesso';
+        $mensagem_sucesso = 'Editado com Sucesso! Aguarde a aprovação.';
     }
     
     $query_agendamento = $pdo->prepare($sql);

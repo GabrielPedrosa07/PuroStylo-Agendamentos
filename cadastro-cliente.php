@@ -55,6 +55,11 @@
                         
                         <div id="mensagem" align="center" class="mb-3"></div>
 
+                        <div class="form-group form-check">
+                           <input type="checkbox" class="form-check-input" id="termos" required>
+                           <label class="form-check-label" for="termos">Li e aceito os <a href="termos.php" target="_blank">Termos de Uso</a> e <a href="politica.php" target="_blank">Política de Privacidade</a>.</label>
+                        </div>
+                        
                         <button type="submit" id="btn-salvar" class="btn btn-primary btn-block" style="background-color: #000; border-color: #000;">Cadastrar</button>
                     </form>
 
