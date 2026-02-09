@@ -25,6 +25,7 @@ echo <<<HTML
 	<th class="esc">Valor</th> 	
 	<th class="esc">Vencimento</th> 	
 	<th class="esc">Data PGTO</th> 
+	<th class="esc">Forma PGTO</th>
 	<th class="esc">Usuário PGTO</th>
 	<th class="esc">Cliente</th>	
 	<th class="esc">Arquivo</th>	
@@ -48,6 +49,7 @@ for($i=0; $i < $total_reg; $i++){
 	$foto = $res[$i]['foto'];
 	$pessoa = $res[$i]['pessoa'];
 	$pago = $res[$i]['pago'];
+	$forma_pgto = $res[$i]['forma_pgto'];
 	
 	$valorF = number_format($valor, 2, ',', '.');
 	$data_lancF = implode('/', array_reverse(explode('-', $data_lanc)));
@@ -95,6 +97,7 @@ for($i=0; $i < $total_reg; $i++){
 			$data_pgtoF = 'Pendente';
 			$visivel = '';
 			$total_a_pagar += $valor;
+			$forma_pgto = '';
 		}else{
 			$classe_alerta = 'verde';
 			$visivel = 'ocultar';
@@ -133,13 +136,14 @@ echo <<<HTML
 <td class="esc">R$ {$valorF}</td>
 <td class="esc">{$data_vencF}</td>
 <td class="esc">{$data_pgtoF}</td>
+<td class="esc">{$forma_pgto}</td>
 <td class="esc">{$nome_usuario_pgto}</td>
 <td class="esc">{$nome_pessoa}</td>
 <td><a href="img/contas/{$foto}" target="_blank"><img src="img/contas/{$tumb_arquivo}" width="27px" class="mr-2"></a></td>
 <td>
-		<big><a href="#" onclick="editar('{$id}','{$descricao}', '{$pessoa}', '{$valor}', '{$data_venc}', '{$data_pgto}', '{$tumb_arquivo}')" title="Editar Dados"><i class="fa fa-edit text-primary"></i></a></big>
+		<big><a href="#" onclick="editar('{$id}','{$descricao}', '{$pessoa}', '{$valor}', '{$data_venc}', '{$data_pgto}', '{$tumb_arquivo}', '{$forma_pgto}')" title="Editar Dados"><i class="fa fa-edit text-primary"></i></a></big>
 
-		<big><a href="#" onclick="mostrar('{$descricao}', '{$valorF}', '{$data_lancF}', '{$data_vencF}',  '{$data_pgtoF}', '{$nome_usuario_lanc}', '{$nome_usuario_pgto}', '{$tumb_arquivo}', '{$nome_pessoa}', '{$foto}')" title="Ver Dados"><i class="fa fa-info-circle text-secondary"></i></a></big>
+		<big><a href="#" onclick="mostrar('{$descricao}', '{$valorF}', '{$data_lancF}', '{$data_vencF}',  '{$data_pgtoF}', '{$nome_usuario_lanc}', '{$nome_usuario_pgto}', '{$tumb_arquivo}', '{$nome_pessoa}', '{$foto}', '{$forma_pgto}')" title="Ver Dados"><i class="fa fa-info-circle text-secondary"></i></a></big>
 
 
 

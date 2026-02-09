@@ -11,6 +11,7 @@ $valor = str_replace(',', '.', $valor);
 $pessoa = $_POST['pessoa'];
 $data_venc = $_POST['data_venc'];
 $data_pgto = $_POST['data_pgto'];
+$forma_pgto = $_POST['forma_pgto'];
 
 if($descricao == ""){
 	echo 'Insira uma descrição!';
@@ -69,13 +70,14 @@ if(@$_FILES['foto']['name'] != ""){
 
 
 if($id == ""){
-	$query = $pdo->prepare("INSERT INTO $tabela SET descricao = :descricao, tipo = 'Conta', valor = :valor, data_lanc = curDate(), data_venc = '$data_venc', data_pgto = '$data_pgto', usuario_lanc = '$id_usuario', usuario_baixa = '$usuario_pgto', foto = '$foto', pessoa = '$pessoa', pago = '$pago'");
+	$query = $pdo->prepare("INSERT INTO $tabela SET descricao = :descricao, tipo = 'Conta', valor = :valor, data_lanc = curDate(), data_venc = '$data_venc', data_pgto = '$data_pgto', usuario_lanc = '$id_usuario', usuario_baixa = '$usuario_pgto', foto = '$foto', pessoa = '$pessoa', pago = '$pago', forma_pgto = :forma_pgto");
 }else{
-	$query = $pdo->prepare("UPDATE $tabela SET descricao = :descricao, valor = :valor, data_venc = '$data_venc', data_pgto = '$data_pgto', foto = '$foto', pessoa = '$pessoa' WHERE id = '$id'");
+	$query = $pdo->prepare("UPDATE $tabela SET descricao = :descricao, valor = :valor, data_venc = '$data_venc', data_pgto = '$data_pgto', foto = '$foto', pessoa = '$pessoa', forma_pgto = :forma_pgto WHERE id = '$id'");
 }
 
 $query->bindValue(":descricao", "$descricao");
 $query->bindValue(":valor", "$valor");
+$query->bindValue(":forma_pgto", "$forma_pgto");
 $query->execute();
 
 echo 'Salvo com Sucesso';

@@ -22,6 +22,14 @@ if (empty($nome) || empty($telefone) || empty($funcionario) || empty($servico)) 
     exit();
 }
 
+
+// Validar se a data/hora é passada
+$data_hora_agendamento = strtotime("$data $hora");
+if ($data_hora_agendamento < time()) {
+    echo 'Você não pode agendar em uma data ou horário passado!';
+    exit();
+}
+
 $limite_diario = 5; // Defina o limite que você quer aqui!
 
 // Inicia o bloco principal de execução

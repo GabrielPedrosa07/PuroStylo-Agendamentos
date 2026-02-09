@@ -170,6 +170,19 @@ $data_final_mes = $ano_atual."-".$mes_atual."-".$dia_final_mes;
 							</div> 	
 						</div>
 
+						<div class="col-md-4">
+							<div class="form-group">
+								<label for="exampleInputEmail1">Forma de Pagamento</label>
+								<select class="form-control" name="forma_pgto" id="forma_pgto" style="width:100%;"> 
+									<option value="">Selecione...</option>
+									<option value="Dinheiro">Dinheiro</option>
+									<option value="Pix">Pix</option>
+									<option value="Cartão de Crédito">Cartão de Crédito</option>
+									<option value="Cartão de Débito">Cartão de Débito</option>
+								</select>    
+							</div> 	
+						</div>
+
 						
 
 					</div>
@@ -361,7 +374,7 @@ $data_final_mes = $ano_atual."-".$mes_atual."-".$dia_final_mes;
 	function valorData(dataInicio, dataFinal){
 	 $('#data-inicial-caixa').val(dataInicio);
 	 $('#data-final-caixa').val(dataFinal);	
-	listar();
+	 listar();
 }
 </script>
 
@@ -437,4 +450,75 @@ $data_final_mes = $ano_atual."-".$mes_atual."-".$dia_final_mes;
     });
 }
 
+</script>
+
+<script type="text/javascript">
+	function editar(id, descricao, pessoa, valor, data_venc, data_pgto, foto, forma_pgto){
+		$('#id').val(id);
+		$('#descricao').val(descricao);
+		$('#pessoa').val(pessoa).change();
+		$('#valor').val(valor);
+		$('#data_venc').val(data_venc);
+		$('#data_pgto').val(data_pgto);
+		$('#forma_pgto').val(forma_pgto);
+								
+		$('#titulo_inserir').text('Editar Registro');
+		$('#modalForm').modal('show');
+		$('#foto').val('');
+		$('#target').attr('src','img/contas/' + foto);
+	}
+
+	function limparCampos(){
+		$('#id').val('');
+		$('#descricao').val('');
+		$('#valor').val('');
+		$('#data_pgto').val('');
+		$('#forma_pgto').val('');
+		$('#data_venc').val('<?=$data_hoje?>');		
+		$('#foto').val('');
+
+		$('#target').attr('src','img/contas/sem-foto.jpg');
+	}
+</script>
+
+<script type="text/javascript">
+	function mostrar(descricao, valor, data_lanc, data_venc, data_pgto, usuario_lanc, usuario_pgto, foto, pessoa, link, forma_pgto){
+
+		$('#nome_dados').text(descricao);
+		$('#valor_dados').text(valor);
+		$('#data_lanc_dados').text(data_lanc);
+		$('#data_venc_dados').text(data_venc);
+		$('#data_pgto_dados').text(data_pgto);
+		$('#usuario_lanc_dados').text(usuario_lanc);
+		$('#usuario_baixa_dados').text(usuario_pgto);
+		$('#pessoa_dados').text(pessoa + ' - ' + forma_pgto);
+		
+		$('#link_mostrar').attr('href','img/contas/' + link);
+		$('#target_mostrar').attr('src','img/contas/' + foto);
+
+		$('#modalDados').modal('show');
+	}
+</script>
+
+<script type="text/javascript">
+	function saida(id, nome, estoque){
+
+		$('#nome_saida').text(nome);
+		$('#estoque_saida').val(estoque);
+		$('#id_saida').val(id);		
+
+		$('#modalSaida').modal('show');
+	}
+</script>
+
+
+<script type="text/javascript">
+	function entrada(id, nome, estoque){
+
+		$('#nome_entrada').text(nome);
+		$('#estoque_entrada').val(estoque);
+		$('#id_entrada').val(id);		
+
+		$('#modalEntrada').modal('show');
+	}
 </script>

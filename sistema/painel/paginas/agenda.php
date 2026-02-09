@@ -311,6 +311,18 @@ $servicos = $query_serv->fetchAll(PDO::FETCH_ASSOC);
                             <input type="date" class="form-control" name="data_pgto" id="data_pgto" value="<?php echo $data_atual ?>"> 
                         </div>  
                     </div>
+
+                    <div class="row">
+                        <div class="col-md-6 form-group">
+                            <label>Forma de Pagamento</label> 
+                            <select class="form-control" name="forma_pgto" id="forma_pgto" style="width:100%;" required> 
+                                <option value="Dinheiro">Dinheiro</option>
+                                <option value="Pix">Pix</option>
+                                <option value="Cartão de Crédito">Cartão de Crédito</option>
+                                <option value="Cartão de Débito">Cartão de Débito</option>
+                            </select>    
+                        </div>
+                    </div>
                     <br>
                     <input type="hidden" name="id_agd" id="id_agd"> 
                     <input type="hidden" name="cliente_agd" id="cliente_agd"> 

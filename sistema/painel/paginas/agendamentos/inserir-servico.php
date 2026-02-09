@@ -11,6 +11,7 @@ $id_agd = $_POST['id_agd'] ?? 0;
 $valor_serv_pago = $_POST['valor_serv_agd'];
 $funcionario_id = $_POST['funcionario_agd'];
 $servico_id = $_POST['servico_agd'];
+$forma_pgto = $_POST['forma_pgto'];
 
 // Inicia uma transação. Todas as queries a seguir devem ter sucesso.
 // Se qualquer uma falhar, todas serão revertidas (rollback).
@@ -66,7 +67,7 @@ try {
     }
 
     // 4. INSERE A CONTA A RECEBER PELO SERVIÇO (DE FORMA SEGURA)
-    $query_receber = $pdo->prepare("INSERT INTO receber SET descricao = :desc, tipo = 'Serviço', valor = :val, data_lanc = curDate(), data_venc = :data_venc, data_pgto = :data_pgto, usuario_lanc = :usu_lanc, usuario_baixa = :usu_baixa, foto = 'sem-foto.jpg', pessoa = :pessoa, pago = :pago, servico = :serv, funcionario = :func");
+    $query_receber = $pdo->prepare("INSERT INTO receber SET descricao = :desc, tipo = 'Serviço', valor = :val, data_lanc = curDate(), data_venc = :data_venc, data_pgto = :data_pgto, usuario_lanc = :usu_lanc, usuario_baixa = :usu_baixa, foto = 'sem-foto.jpg', pessoa = :pessoa, pago = :pago, servico = :serv, funcionario = :func, forma_pgto = :forma_pgto");
     $query_receber->execute([
         ':desc' => $nome_servico,
         ':val' => $valor_serv_pago,
@@ -77,7 +78,8 @@ try {
         ':pessoa' => $cliente_id,
         ':pago' => $pago_status,
         ':serv' => $servico_id,
-        ':func' => $funcionario_id
+        ':func' => $funcionario_id,
+        ':forma_pgto' => $forma_pgto
     ]);
 
     // 5. ATUALIZA O STATUS DO AGENDAMENTO (DE FORMA SEGURA)

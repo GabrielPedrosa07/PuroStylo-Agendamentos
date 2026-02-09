@@ -73,7 +73,10 @@ try {
             $esta_agendado = ($horario['agendamento_id'] !== null);
             $e_o_horario_salvo = (!empty($hora_rec) && strtotime($hora_rec) == strtotime($hora_atual_loop));
 
-            $pode_selecionar = !$esta_agendado || $e_o_horario_salvo;
+            // Validação de horário passado
+            $e_passado = (strtotime($data) == strtotime(date('Y-m-d'))) && (strtotime($hora_atual_loop) < time());
+            
+            $pode_selecionar = (!$esta_agendado || $e_o_horario_salvo) && !$e_passado;
 
             $hora_desabilitada = $pode_selecionar ? '' : 'disabled';
             $texto_hora = $esta_agendado ? 'text-danger' : '';
@@ -87,7 +90,7 @@ try {
                 <div class="horario-item"> 
                     <input type="radio" name="hora" id="hora-'.$horaF.'" value="'.htmlspecialchars($hora_atual_loop).'" '.$hora_desabilitada.' '.$checado.' required style="display:none">
                     <label class="'.$texto_hora.'" for="hora-'.$horaF.'">
-                        '.$horaF.'
+                        '.$horaF . ($e_passado ? ' <i class="fa fa-lock" style="font-size:12px"></i>' : '') .'
                     </label>
                 </div>';
         }
