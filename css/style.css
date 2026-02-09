@@ -557,7 +557,7 @@ a:focus {
 }
 
 .contact_section .form_container input {
-  width: 100%;
+  width: 90%;
   border: 1px solid #e0e0e0;
   height: 55px;
   margin-bottom: 25px;
